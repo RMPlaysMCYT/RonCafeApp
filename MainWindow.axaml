@@ -1,0 +1,94 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:RonCafeApp.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="750"
+        x:Class="RonCafeApp.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Ron Cafe Launcher"
+        Background="#1E1E2E">
+
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+
+    <Grid ColumnDefinitions="200, *">
+        
+        <Border Grid.Column="0" Background="#181825" Padding="10">
+            <ListBox ItemsSource="{Binding Categories}" 
+                     SelectedItem="{Binding SelectedCategory}"
+                     Background="Transparent"
+                     Foreground="White">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" 
+                                   FontSize="18" 
+                                   Padding="10,15"
+                                   FontWeight="SemiBold"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <Grid Grid.Column="1" RowDefinitions="Auto, *">
+            
+<Border Grid.Row="0" Padding="20, 20, 20, 10" BorderBrush="#313244" BorderThickness="0,0,0,1">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="Add New App:" VerticalAlignment="Center" Foreground="LightGray" FontWeight="SemiBold" Margin="0,0,10,0"/>
+                    
+                    <TextBox Text="{Binding NewAppName}" Watermark="App Name" Width="150" VerticalAlignment="Center"/>
+                    
+                    <Button Content="Browse for .exe" Command="{Binding BrowseForExecutable}" Padding="10,5" Background="#89B4FA" Foreground="Black" FontWeight="Bold"/>
+                    
+                    <TextBlock Text="{Binding NewAppExecutionPath}" VerticalAlignment="Center" Foreground="#A6ADC8" FontStyle="Italic" MaxWidth="200" TextTrimming="CharacterEllipsis"/>
+                    
+                    <Button Content="Add to List" Command="{Binding AddNewApp}" Padding="10,5" Background="#A6E3A1" Foreground="Black" FontWeight="Bold"/>
+                </StackPanel>
+            </Border>
+
+<TextBlock Grid.Row="1" 
+                       Text="It is currently empty. Add an app to the list above to get started!" 
+                       Foreground="#A6ADC8" 
+                       FontSize="22" 
+                       FontWeight="SemiBold"
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding IsAppListEmpty}"/>
+
+            <ScrollViewer Grid.Row="1" Padding="20">
+                <ItemsControl ItemsSource="{Binding DisplayedApps}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Width="120" Height="140" 
+                                    Margin="10" 
+                                    Background="#313244"
+                                    CornerRadius="8"
+                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
+                                    CommandParameter="{Binding getExecutionPATH}">
+                                
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding IconPlaceholder}" 
+                                               FontSize="40" 
+                                               HorizontalAlignment="Center" 
+                                               Margin="0,0,0,10"/>
+                                    <TextBlock Text="{Binding Name}" 
+                                               Foreground="White" 
+                                               HorizontalAlignment="Center" 
+                                               TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+        </Grid>
+    </Grid>
+</Window>
