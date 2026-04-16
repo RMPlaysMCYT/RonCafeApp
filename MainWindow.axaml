@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:RonCafeApp.ViewModels"
+        xmlns:conv="clr-namespace:RonCafeApp.Converters"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="750"
         x:Class="RonCafeApp.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -33,21 +34,21 @@
 
         <Grid Grid.Column="1" RowDefinitions="Auto, *">
             
-<Border Grid.Row="0" Padding="20, 20, 20, 10" BorderBrush="#313244" BorderThickness="0,0,0,1">
+        <Border Grid.Row="0" Padding="20, 20, 20, 10" BorderBrush="#313244" BorderThickness="0,0,0,1">
                 <StackPanel Orientation="Horizontal" Spacing="10">
                     <TextBlock Text="Add New App:" VerticalAlignment="Center" Foreground="LightGray" FontWeight="SemiBold" Margin="0,0,10,0"/>
-                    
-                    <TextBox Text="{Binding NewAppName}" Watermark="App Name" Width="150" VerticalAlignment="Center"/>
-                    
+                    <TextBox Text="{Binding NewAppName}" PlaceholderText="App Name" Width="150" VerticalAlignment="Center"/>
                     <Button Content="Browse for .exe" Command="{Binding BrowseForExecutable}" Padding="10,5" Background="#89B4FA" Foreground="Black" FontWeight="Bold"/>
-                    
+
+					<TextBox Text="{Binding NewIconPlaceHolder}" PlaceholderText="Icon Path" Width="150" VerticalAlignment="Center"/>
+					<Button Content="Browse for Icon" Command="{Binding BrowseForIcon}" Padding="10,5" Background="#89B4FA" Foreground="Black" FontWeight="Bold"/>
+					
                     <TextBlock Text="{Binding NewAppExecutionPath}" VerticalAlignment="Center" Foreground="#A6ADC8" FontStyle="Italic" MaxWidth="200" TextTrimming="CharacterEllipsis"/>
-                    
                     <Button Content="Add to List" Command="{Binding AddNewApp}" Padding="10,5" Background="#A6E3A1" Foreground="Black" FontWeight="Bold"/>
                 </StackPanel>
             </Border>
 
-<TextBlock Grid.Row="1" 
+            <TextBlock Grid.Row="1" 
                        Text="It is currently empty. Add an app to the list above to get started!" 
                        Foreground="#A6ADC8" 
                        FontSize="22" 

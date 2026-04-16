@@ -39,6 +39,21 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+
+    private string _newIconPlaceHolder = string.Empty;
+    public string NewIconPlaceHolder
+    {
+        get => _newIconPlaceHolder;
+        set
+        {
+            if (_newIconPlaceHolder != value)
+            {
+                _newIconPlaceHolder = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(NewIconPlaceHolder)));
+            }
+        }
+    }
+
     public void LaunchApp(string execPath)
     {
         if (string.IsNullOrWhiteSpace(execPath)) return;
@@ -71,13 +86,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
             Name = NewAppName,
             Category = SelectedCategory,
             getExecutionPATH = NewAppExecutionPath,
-            IconPlaceholder = "🚀" 
+            IconPlaceholder = string.IsNullOrWhiteSpace(NewIconPlaceHolder) ? "/assets/placeholder.png" : NewIconPlaceHolder
         };
         _allApps.Add(newApp);
         SaveApps();
         FilterApps();
         NewAppName = string.Empty;
         NewAppExecutionPath = string.Empty;
+        NewIconPlaceHolder = string.Empty;
     }
 
     public string NewAppExecutionPath
@@ -116,6 +132,37 @@ public class MainWindowViewModel : INotifyPropertyChanged
             }
         }
     }
+
+
+
+    public async void BrowseForIcon()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            var mainWindow = desktop.MainWindow;
+            if (mainWindow == null) return;
+
+            var topLevel = TopLevel.GetTopLevel(mainWindow);
+            if (topLevel == null) return;
+
+            var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Select App Icon",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.ico", "*.webp" } },
+                new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } }
+            }
+            });
+
+            if (files.Count >= 1)
+            {
+                NewIconPlaceHolder = files[0].Path.LocalPath;
+            }
+        }
+    }
+
 
     public List<string> Categories { get; } = new()
     {
