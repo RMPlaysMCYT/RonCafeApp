@@ -18,16 +18,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly string _configurationPath = "cafeLauncher.json";
-
-    // ─── Current overlay page ────────────────────────────────────────────────
     private object? _currentPage;
     public object? CurrentPage
     {
         get => _currentPage;
         set { _currentPage = value; Notify(nameof(CurrentPage)); }
     }
-
-    // ─── Theme / Appearance ──────────────────────────────────────────────────
     private IBrush _launcherBackground = SolidColorBrush.Parse("#1E1E2E");
     public IBrush LauncherBackground
     {
@@ -48,8 +44,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
         get => _accentColor;
         set { _accentColor = value; Notify(nameof(AccentColor)); }
     }
-
-    /// <summary>Called from SettingsView preset buttons via CommandParameter.</summary>
     public void SetTheme(object? param)
     {
         switch (param as string)
@@ -82,8 +76,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
         SaveConfig();
     }
-
-    // ─── New-app form fields ─────────────────────────────────────────────────
     private string _newAppName = string.Empty;
     public string NewAppName
     {
@@ -104,8 +96,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
         get => _newIconPlaceHolder;
         set { if (_newIconPlaceHolder != value) { _newIconPlaceHolder = value; Notify(nameof(NewIconPlaceHolder)); } }
     }
-
-    // ─── App list ────────────────────────────────────────────────────────────
     public bool IsAppListEmpty => DisplayedApps.Count == 0;
 
     private List<AppItem> _allApps = new();
@@ -238,16 +228,17 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
         string json = File.ReadAllText(_configurationPath);
 
-        // Handle old format: plain array of apps
+        // Handle old plain-array format
         if (json.TrimStart().StartsWith("["))
         {
-            _allApps = JsonSerializer.Deserialize<List<AppItem>>(json) ?? new List<AppItem>();
-            SaveConfig(); // re-save in new format immediately
+            _allApps = JsonSerializer.Deserialize(json, AppJsonContext.Default.ListAppItem)
+                       ?? new List<AppItem>();
+            SaveConfig();
             return;
         }
 
-        // New format: LauncherConfig object
-        var config = JsonSerializer.Deserialize<LauncherConfig>(json) ?? new LauncherConfig();
+        var config = JsonSerializer.Deserialize(json, AppJsonContext.Default.LauncherConfig)
+                     ?? new LauncherConfig();
         _allApps = config.Apps;
         try
         {
@@ -255,7 +246,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
             SidebarBackground  = SolidColorBrush.Parse(config.SidebarColor);
             AccentColor        = SolidColorBrush.Parse(config.AccentColor);
         }
-        catch { /* keep defaults if saved color string is invalid */ }
+        catch { /* keep defaults */ }
     }
 
     private void SaveConfig()
@@ -265,11 +256,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
             Apps            = _allApps,
             BackgroundColor = (LauncherBackground as SolidColorBrush)?.Color.ToString() ?? "#1E1E2E",
             SidebarColor    = (SidebarBackground  as SolidColorBrush)?.Color.ToString() ?? "#181825",
-            AccentColor     = (AccentColor         as SolidColorBrush)?.Color.ToString() ?? "#89B4FA",
+            AccentColor     = (AccentColor        as SolidColorBrush)?.Color.ToString() ?? "#89B4FA",
         };
         File.WriteAllText(_configurationPath,
-            JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true }));
+            JsonSerializer.Serialize(config, AppJsonContext.Default.LauncherConfig));
     }
+
 
     private void FilterApps()
     {
