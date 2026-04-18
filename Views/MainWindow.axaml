@@ -1,0 +1,104 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:RonCafeApp.ViewModels"
+        xmlns:models="using:RonCafeApp.Models"
+        xmlns:conv="clr-namespace:RonCafeApp.Converters"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="750"
+        x:Class="RonCafeApp.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Ron Cafe Launcher"
+        Background="{Binding LauncherBackground}">
+
+    <Window.DataContext>
+        <vm:MainWindowViewModel/>
+    </Window.DataContext>
+    <Window.Resources>
+        <conv:StringToImageConverter x:Key="ImgConv"/>
+    </Window.Resources>
+
+    <Grid ColumnDefinitions="200, *">
+
+        <!-- ── Sidebar ── -->
+        <Border Grid.Column="0" Background="{Binding SidebarBackground}" Padding="10">
+            <Grid RowDefinitions="*, Auto">
+                <ListBox ItemsSource="{Binding Categories}"
+                         SelectedItem="{Binding SelectedCategory}"
+                         Background="Transparent"
+                         Foreground="White"/>
+                <Button Grid.Row="1"
+                        Content="⚙ Settings"
+                        Command="{Binding ShowSettings}"
+                        Foreground="AntiqueWhite"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Margin="0,10,0,0"/>
+            </Grid>
+        </Border>
+
+        <!-- ── Main content area ── -->
+        <Grid Grid.Column="1">
+
+            <!-- App grid (hidden while Settings is open) -->
+            <ScrollViewer Padding="20"
+                          IsVisible="{Binding CurrentPage,
+                              Converter={x:Static ObjectConverters.IsNull}}">
+                <StackPanel>
+                    <TextBlock IsVisible="{Binding IsAppListEmpty}"
+                               Text="No apps in this category yet. Open Settings to add some!"
+                               Foreground="#A6ADC8"
+                               HorizontalAlignment="Center"
+                               Margin="0,40,0,0"
+                               FontSize="14"/>
+
+                    <ItemsControl ItemsSource="{Binding DisplayedApps}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:AppItem">
+                                <Border Background="#313244"
+                                        CornerRadius="10"
+                                        Margin="8" Padding="15"
+                                        Width="150" Height="170">
+                                    <StackPanel HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Spacing="8">
+                                        <Image Width="64" Height="64"
+                                               Source="{Binding IconPlaceholder,
+                                                   Converter={StaticResource ImgConv}}"
+                                               HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="White"
+                                                   TextAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   MaxWidth="130"
+                                                   FontSize="12"/>
+                                        <Button Content="▶ Launch"
+                                                Background="#A6E3A1"
+                                                Foreground="#11111B"
+                                                FontWeight="Bold"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Center"
+                                                Padding="6,4"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
+                                                CommandParameter="{Binding getExecutionPATH}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Settings overlay -->
+            <ContentControl Content="{Binding CurrentPage}"
+                            Background="{Binding LauncherBackground}"
+                            IsVisible="{Binding CurrentPage,
+                                Converter={x:Static ObjectConverters.IsNotNull}}"/>
+        </Grid>
+    </Grid>
+</Window>
