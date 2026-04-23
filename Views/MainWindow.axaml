@@ -22,8 +22,10 @@
 
         <!-- ── Sidebar ── -->
         <Border Grid.Column="0" Background="{Binding SidebarBackground}" Padding="10">
-            <Grid RowDefinitions="*, Auto">
-                <ListBox Padding="10,10,0,0"
+            <Grid RowDefinitions="Auto, *, Auto">
+                <Image Grid.Row="0" Stretch="Uniform" Width="200" Height="200" Source="avares://RonCafeApp/Assets/placeholder.png"/>
+                <ListBox Grid.Row="1"
+                        Padding="0,0,0,0"
                         ItemsSource="{Binding Categories}"
                          SelectedItem="{Binding SelectedCategory}"
                          Background="Transparent"
