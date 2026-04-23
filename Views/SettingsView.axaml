@@ -162,6 +162,10 @@
                         Foreground="{Binding AccentColor}"
                         HorizontalAlignment="Left"
                         Margin="0,10,0,20"/>
+                <TextBlock Text="Copyright 2026 Ronnel Mitra, All Rights Reserved"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Bottom"
+                           />
             </StackPanel>
         </ScrollViewer>
     </Grid>

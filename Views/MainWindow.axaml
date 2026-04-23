@@ -23,11 +23,12 @@
         <!-- ── Sidebar ── -->
         <Border Grid.Column="0" Background="{Binding SidebarBackground}" Padding="10">
             <Grid RowDefinitions="*, Auto">
-                <ListBox ItemsSource="{Binding Categories}"
+                <ListBox Padding="10,10,0,0"
+                        ItemsSource="{Binding Categories}"
                          SelectedItem="{Binding SelectedCategory}"
                          Background="Transparent"
                          Foreground="White"/>
-                <Button Grid.Row="1"
+                <Button Grid.Row="2"
                         Content="⚙ Settings"
                         Command="{Binding ShowSettings}"
                         Foreground="AntiqueWhite"
@@ -93,12 +94,17 @@
                     </ItemsControl>
                 </StackPanel>
             </ScrollViewer>
-
             <!-- Settings overlay -->
             <ContentControl Content="{Binding CurrentPage}"
                             Background="{Binding LauncherBackground}"
                             IsVisible="{Binding CurrentPage,
                                 Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            <TextBlock Text="Version 1.0.2"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Bottom"
+                       Margin="0,0,10,10"
+                       Foreground="#A6ADC8"
+                       />
         </Grid>
     </Grid>
 </Window>
