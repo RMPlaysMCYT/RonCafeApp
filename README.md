@@ -1,8 +1,8 @@
 # RonCafeApp
 This is free and open-source PC Launcher which aims for pisonet systems and internet cafes where this was dominance in philippines
-__
-Note: This core software is free of charge while it needs your skills as a programmer especially for the IoT and stuff
-__
+_____
+#### Note: This core software is free of charge while it needs your skills as a programmer especially for the IoT and stuff
+_____
 ## Features
 * Add Game Selection
 * Add Categories 
