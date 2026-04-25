@@ -16,7 +16,7 @@
 
     <Grid RowDefinitions="Auto, *" Margin="30">
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Management Settings" FontSize="28" FontWeight="Bold"
+            <TextBlock Text="Launcher Settings" FontSize="28" FontWeight="Bold"
                        Foreground="{Binding AccentColor}"/>
             <TextBlock Text="Configure your games, apps, and launcher appearance here."
                        Foreground="#A6ADC8"/>
