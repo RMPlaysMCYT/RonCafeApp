@@ -214,6 +214,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     // ─── Navigation ──────────────────────────────────────────────────────────
     public void ShowSettings()  => CurrentPage = new RonCafeApp.Views.SettingsView { DataContext = this };
+
+    public void PasswordScreen() => CurrentPage = new RonCafeApp.Views.PasswordScreen { DataContext = this };
     public void CloseSettings() => CurrentPage = null;
 
     // ─── Persistence ─────────────────────────────────────────────────────────
@@ -272,4 +274,5 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     private void Notify(string name) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    
 }
