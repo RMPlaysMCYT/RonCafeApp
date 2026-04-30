@@ -5,6 +5,7 @@
       <map>
         <entry key="MainWindow.axaml" value="RonCafeApp.csproj" />
         <entry key="SettingsView.axaml" value="RonCafeApp.csproj" />
+        <entry key="Views/CurfewWarningWindow.axaml" value="RonCafeApp.csproj" />
         <entry key="Views/MainWindow.axaml" value="RonCafeApp.csproj" />
         <entry key="Views/PasswordScreen.axaml" value="RonCafeApp.csproj" />
         <entry key="Views/SettingsView.axaml" value="RonCafeApp.csproj" />
