@@ -48,6 +48,11 @@
                           IsVisible="{Binding CurrentPage,
                               Converter={x:Static ObjectConverters.IsNull}}">
                 <StackPanel>
+                    <TextBlock Text="{Binding SelectedCategory}"
+                               FontSize="40"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Right"
+                               Foreground="White"/>
                     <TextBlock IsVisible="{Binding IsAppListEmpty}"
                                Text="No apps in this category yet. Open Settings to add some!"
                                Foreground="#A6ADC8"
