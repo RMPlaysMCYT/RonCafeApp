@@ -408,7 +408,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string AdminPasswordInput
     {
         get => _adminPassword;
-        set {if (_adminPassword == value) {_adminPassword = value; Notify(nameof(AdminPasswordInput)); }}
+        set {if (_adminPassword != value) {_adminPassword = value; Notify(nameof(AdminPasswordInput)); }}
     }
 
     private bool _isTryToOpenSettings = false;
@@ -435,7 +435,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             if (_isTryToOpenSettings)
             {
-                _isTryToOpenSettings = true;
+                _isTryToOpenSettings = false;
                 ShowSettings();
             }
             else if (_pendingLockApp != null)
