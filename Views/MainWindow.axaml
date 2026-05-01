@@ -22,15 +22,18 @@
 
         <!-- ── Sidebar ── -->
         <Border Grid.Column="0" Background="{Binding SidebarBackground}" Padding="10">
-            <Grid RowDefinitions="Auto, *, Auto">
+            <Grid RowDefinitions="Auto, Auto, *, Auto">
                 <Image Grid.Row="0" Stretch="Uniform" Width="160" Height="200" Source="avares://RonCafeApp/Assets/placeholder.png"/>
-                <ListBox Grid.Row="1"
-                        Padding="0,0,0,0"
-                        ItemsSource="{Binding Categories}"
+                <TextBlock Grid.Row="1" Text="{Binding CurrentTime}" Foreground="White" FontSize="24"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"/>
+                <ListBox Grid.Row="2"
+                         Padding="0,0,0,0"
+                         ItemsSource="{Binding Categories}"
                          SelectedItem="{Binding SelectedCategory}"
                          Background="Transparent"
                          Foreground="White"/>
-                <Button Grid.Row="2"
+                <Button Grid.Row="3"
                         Content="⚙ Settings"
                         Command="{Binding ShowSettings}"
                         Foreground="AntiqueWhite"

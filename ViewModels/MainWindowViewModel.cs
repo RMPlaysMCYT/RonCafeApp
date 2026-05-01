@@ -1,15 +1,19 @@
-﻿using RonCafeApp.Models;
+﻿using System;
+using RonCafeApp.Models;
+using RonCafeApp.Services;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.IO;
 using System.Text.Json;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 
 namespace RonCafeApp.ViewModels;
 
@@ -18,6 +22,20 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly string _configurationPath = "cafeLauncher.json";
+
+    private readonly Dictionary<int, string> _runningProcess = new();
+    private readonly ClockDisplay _clockDisplay;
+
+    private AppItem? pendingLockApp;
+
+    private string _currentTime = DateTime.Now.ToString("HH:mm:ss");
+    public string CurrentTime
+    {
+        get => _currentTime;
+        set { _currentTime = value; Notify(nameof(CurrentTime)); }
+    }
+    
+    
     private object? _currentPage;
     public object? CurrentPage
     {
@@ -130,6 +148,15 @@ public class MainWindowViewModel : INotifyPropertyChanged
     // ─── Constructor ─────────────────────────────────────────────────────────
     public MainWindowViewModel()
     {
+        _clockDisplay = new ClockDisplay();
+
+        _clockDisplay.OnMinuteChanged += (now) =>
+        {
+            CurrentTime = now.ToString("HH:mm:ss");
+        };
+
+        _clockDisplay.OnCurfewReached += StopGamesActivity;
+        
         LoadConfig();
         FilterApps();
     }
@@ -140,12 +167,20 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (param is not string execPath || string.IsNullOrWhiteSpace(execPath)) return;
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = execPath,
                 WorkingDirectory = Path.GetDirectoryName(execPath),
                 UseShellExecute = true
             });
+            if (process != null)
+            {
+                var app = _allApps.FirstOrDefault(a => a.getExecutionPATH == execPath);
+                if (app != null)
+                {
+                    _runningProcess.Add(process.Id, app.Category);
+                }
+            }
         }
         catch (System.Exception ex)
         {
@@ -274,5 +309,21 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     private void Notify(string name) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    
+
+    private void StopGamesActivity()
+    {
+        foreach (var item in _runningProcess.ToList())
+        {
+            if (item.Value == "Games")
+            {
+                try
+                {
+                    var proc = Process.GetProcessById(item.Key);
+                    proc.Kill();
+                    _runningProcess.Remove(item.Key);
+                }
+                catch{}
+            }
+        }
+    }
 }
