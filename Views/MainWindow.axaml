@@ -26,7 +26,9 @@
                 <Image Grid.Row="0" Stretch="Uniform" Width="160" Height="200" Source="avares://RonCafeApp/Assets/placeholder.png"/>
                 <TextBlock Grid.Row="1" Text="{Binding CurrentTime}" Foreground="White" FontSize="24"
                            FontWeight="Bold"
-                           HorizontalAlignment="Center"/>
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Padding="0 0 0  20"/>
                 <ListBox Grid.Row="2"
                          Padding="0,0,0,0"
                          ItemsSource="{Binding Categories}"
@@ -35,7 +37,7 @@
                          Foreground="White"/>
                 <Button Grid.Row="3"
                         Content="⚙ Settings"
-                        Command="{Binding ShowSettings}"
+                        Command="{Binding PromptSettingsPassword}"
                         Foreground="AntiqueWhite"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
@@ -43,10 +45,8 @@
             </Grid>
         </Border>
 
-        <!-- ── Main content area ── -->
         <Grid Grid.Column="1">
 
-            <!-- App grid (hidden while Settings is open) -->
             <ScrollViewer Padding="20"
                           IsVisible="{Binding CurrentPage,
                               Converter={x:Static ObjectConverters.IsNull}}">
@@ -71,34 +71,46 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:AppItem">
-                                <Border Background="#313244"
-                                        CornerRadius="10"
-                                        Margin="8" Padding="15"
-                                        Width="150" Height="170">
-                                    <StackPanel HorizontalAlignment="Center"
-                                                VerticalAlignment="Center"
-                                                Spacing="8">
-                                        <Image Width="64" Height="64"
-                                               Source="{Binding IconPlaceholder,
-                                                   Converter={StaticResource ImgConv}}"
-                                               HorizontalAlignment="Center"/>
-                                        <TextBlock Text="{Binding Name}"
-                                                   Foreground="White"
-                                                   TextAlignment="Center"
-                                                   TextWrapping="Wrap"
-                                                   MaxWidth="130"
-                                                   FontSize="12"/>
-                                        <Button Content="▶ Launch"
-                                                Background="#A6E3A1"
-                                                Foreground="#11111B"
-                                                FontWeight="Bold"
-                                                HorizontalAlignment="Stretch"
-                                                HorizontalContentAlignment="Center"
-                                                Padding="6,4"
-                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
-                                                CommandParameter="{Binding getExecutionPATH}"/>
-                                    </StackPanel>
-                                </Border>
+                                <Panel Margin="8" Width="150" Height="170">
+                                    <Border Background="#313244"
+                                            CornerRadius="10"
+                                            Padding="15">
+                                        <StackPanel HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Spacing="8">
+                                            <Image Width="64" Height="64"
+                                                   Source="{Binding IconPlaceholder,
+                                                       Converter={StaticResource ImgConv}}"
+                                                   HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Name}"
+                                                       Foreground="White"
+                                                       TextAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       MaxWidth="130"
+                                                       FontSize="12"/>
+                                            
+                                            <Button Content="▶ Launch"
+                                                    Background="#A6E3A1"
+                                                    Foreground="#11111B"
+                                                    FontWeight="Bold"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Center"
+                                                    Padding="6,4"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
+                                                    CommandParameter="{Binding}"/>
+                                        </StackPanel>
+                                    </Border>
+                                    
+                                    <Border Background="#B3000000" CornerRadius="10" 
+                                            IsVisible="{Binding CategoryLocked}" 
+                                            IsHitTestVisible="False">
+                                        <TextBlock Text="🔒 LOCKED" 
+                                                   Foreground="#F38BA8" 
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                </Panel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

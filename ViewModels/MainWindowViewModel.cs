@@ -26,7 +26,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private readonly Dictionary<int, string> _runningProcess = new();
     private readonly ClockDisplay _clockDisplay;
 
-    private AppItem? pendingLockApp;
+    private AppItem? _pendingLockApp;
 
     private string _currentTime = DateTime.Now.ToString("HH:mm:ss");
     public string CurrentTime
@@ -158,33 +158,110 @@ public class MainWindowViewModel : INotifyPropertyChanged
         _clockDisplay.OnCurfewReached += StopGamesActivity;
         
         LoadConfig();
+
+        if (_clockDisplay.IsCurrentlyInCurfewState())
+        {
+            foreach (var app in _allApps.Where(a => a.Category == "Games"))
+            {
+                app.CategoryLocked = true;
+            }
+        }
+
+// 1. Update Clock UI
+        _clockDisplay.OnMinuteChanged += (now) => {
+            CurrentTime = now.ToString("hh:mm:ss tt");
+        };
+
+        // 2. Show Warning Overlay
+        _clockDisplay.OnWarningTriggered += (mins) => {
+            Dispatcher.UIThread.Post(() => {
+                new RonCafeApp.Views.CurfewWarningWindow().Show();
+            });
+        };
+
+        // 3. Trigger Curfew (10:00 PM)
+        _clockDisplay.OnCurfewReached += () => {
+            Dispatcher.UIThread.Post(() => {
+                foreach (var app in _allApps.Where(a => a.Category == "Games"))
+                {
+                    app.CategoryLocked = true;
+                }
+                KillGamesOnly();
+            });
+        };
+
+        // 4. --- NEW: Lift Curfew (6:00 AM) ---
+        _clockDisplay.OnCurfewLifted += () => {
+            Dispatcher.UIThread.Post(() => {
+                foreach (var app in _allApps.Where(a => a.Category == "Games"))
+                {
+                    app.CategoryLocked = false; // Unlock!
+                }
+            });
+        };
+        
         FilterApps();
     }
 
     // ─── App CRUD ────────────────────────────────────────────────────────────
     public void LaunchApp(object? param)
     {
-        if (param is not string execPath || string.IsNullOrWhiteSpace(execPath)) return;
+        // Now expects an AppItem instead of a string
+        if (param is not AppItem app || string.IsNullOrWhiteSpace(app.getExecutionPATH)) return;
+
+        if (app.CategoryLocked)
+        {
+            _pendingLockApp = app;
+            PasswordScreen(); // Opens your existing password screen
+            return;
+        }
+
+        ExecuteGameLaunch(app.getExecutionPATH, app.Category);
+    }
+
+    private void ExecuteGameLaunch(string execPath, string category)
+    {
         try
         {
-            var process = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            var process = Process.Start(new ProcessStartInfo
             {
                 FileName = execPath,
                 WorkingDirectory = Path.GetDirectoryName(execPath),
                 UseShellExecute = true
             });
-            if (process != null)
+
+            if (process != null && category == "Games")
             {
-                var app = _allApps.FirstOrDefault(a => a.getExecutionPATH == execPath);
-                if (app != null)
-                {
-                    _runningProcess.Add(process.Id, app.Category);
-                }
+                _runningProcess.Add(process.Id, category);
             }
         }
-        catch (System.Exception ex)
+        catch (System.Exception ex) { System.Console.WriteLine($"Could not launch app: {ex.Message}"); }
+    }
+
+    public void VerifyAdminPassword(string enteredPassword)
+    {
+        if (enteredPassword == "admin123" && _pendingLockApp != null)
         {
-            System.Console.WriteLine($"Could not launch app: {ex.Message}");
+            ExecuteGameLaunch(_pendingLockApp.getExecutionPATH, _pendingLockApp.Category);
+            _pendingLockApp = null;
+            CloseSettings(); // Closes the password overlay
+        }
+    }
+
+    private void KillGamesOnly()
+    {
+        foreach (var item in _runningProcess.ToList())
+        {
+            if (item.Value == "Games")
+            {
+                try
+                {
+                    var proc = Process.GetProcessById(item.Key);
+                    proc.Kill();
+                    _runningProcess.Remove(item.Key);
+                }
+                catch { /* Process might already be closed */ }
+            }
         }
     }
 
@@ -324,6 +401,53 @@ public class MainWindowViewModel : INotifyPropertyChanged
                 }
                 catch{}
             }
+        }
+    }
+    
+    private string _adminPassword = string.Empty;
+    public string AdminPasswordInput
+    {
+        get => _adminPassword;
+        set {if (_adminPassword == value) {_adminPassword = value; Notify(nameof(AdminPasswordInput)); }}
+    }
+
+    private bool _isTryToOpenSettings = false;
+    private string _savedAdminPassword = "abcadmin123";
+
+    public void PromptSettingsPassword()
+    {
+        _isTryToOpenSettings = true;
+        AdminPasswordInput = string.Empty;
+        CurrentPage = new RonCafeApp.Views.PasswordScreen{DataContext = this };
+    }
+
+    public void CancelPasswordCommand()
+    {
+        _isTryToOpenSettings = false;
+        _pendingLockApp = null;
+        AdminPasswordInput = string.Empty;
+        CloseSettings();
+    }
+
+    public void SubmitPasswordCommand()
+    {
+        if (AdminPasswordInput == _savedAdminPassword)
+        {
+            if (_isTryToOpenSettings)
+            {
+                _isTryToOpenSettings = true;
+                ShowSettings();
+            }
+            else if (_pendingLockApp != null)
+            {
+                ExecuteGameLaunch(_pendingLockApp.getExecutionPATH, _pendingLockApp.Category);
+                _pendingLockApp = null;
+                CloseSettings(); 
+            }
+        }
+        else
+        {
+            AdminPasswordInput = string.Empty;
         }
     }
 }
