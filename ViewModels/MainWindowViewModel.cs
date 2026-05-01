@@ -21,7 +21,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private readonly string _configurationPath = "cafeLauncher.json";
+    private readonly string _configurationPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "appsettings.json");
 
     private readonly Dictionary<int, string> _runningProcess = new();
     private readonly ClockDisplay _clockDisplay;
@@ -365,6 +366,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     private void SaveConfig()
     {
+        Directory.CreateDirectory(Path.GetDirectoryName(_configurationPath)!);
         var config = new LauncherConfig
         {
             Apps            = _allApps,
