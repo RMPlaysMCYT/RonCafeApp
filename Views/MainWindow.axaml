@@ -5,6 +5,7 @@
         xmlns:vm="using:RonCafeApp.ViewModels"
         xmlns:models="using:RonCafeApp.Models"
         xmlns:conv="clr-namespace:RonCafeApp.Converters"
+        WindowState="Maximized"
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="750"
         x:Class="RonCafeApp.MainWindow"
         x:DataType="vm:MainWindowViewModel"
