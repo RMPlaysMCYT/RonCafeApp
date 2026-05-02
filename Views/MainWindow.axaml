@@ -31,7 +31,7 @@
                            HorizontalAlignment="Center"
                            Padding="0 0 0  20"/>
                 <ListBox Grid.Row="2"
-                         Padding="0,0,0,0"
+                         Padding="0,20,0,0"
                          ItemsSource="{Binding Categories}"
                          SelectedItem="{Binding SelectedCategory}"
                          Background="Transparent"
@@ -59,9 +59,10 @@
                                Foreground="White"/>
                     <TextBlock IsVisible="{Binding IsAppListEmpty}"
                                Text="No apps in this category yet. Open Settings to add some!"
+                               VerticalAlignment="Center"
                                Foreground="#A6ADC8"
                                HorizontalAlignment="Center"
-                               Margin="0,40,0,0"
+                               Margin="0,250,0,0"
                                FontSize="14"/>
 
                     <ItemsControl ItemsSource="{Binding DisplayedApps}">
@@ -72,17 +73,24 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="models:AppItem">
-                                <Panel Margin="8" Width="150" Height="170">
+                                <Panel Margin="8" Width="180"  Height="250" VerticalAlignment="Center">
                                     <Border Background="#313244"
                                             CornerRadius="10"
                                             Padding="15">
                                         <StackPanel HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
                                                     Spacing="8">
-                                            <Image Width="64" Height="64"
-                                                   Source="{Binding IconPlaceholder,
-                                                       Converter={StaticResource ImgConv}}"
-                                                   HorizontalAlignment="Center"/>
+                                            <Panel>
+                                                <!-- View 1: Square Icon (Visible when UseCoverArtView is FALSE) -->
+                                                <Image Width="64" Height="64" 
+                                                       Source="{Binding IconPlaceholder, Converter={StaticResource ImgConv}}"
+                                                       IsVisible="{Binding !$parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"/>
+
+                                                <!-- View 2: Tall Cover Art (Visible when UseCoverArtView is TRUE) -->
+                                                <Image Width="120" Height="160" Stretch="UniformToFill"
+                                                       Source="{Binding IconPlaceholder, Converter={StaticResource ImgConv}}"
+                                                       IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"/>
+                                            </Panel>
                                             <TextBlock Text="{Binding Name}"
                                                        Foreground="White"
                                                        TextAlignment="Center"

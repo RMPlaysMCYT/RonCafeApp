@@ -152,6 +152,13 @@
                                     Background="{Binding AccentColor}"
                                     BorderBrush="#444" BorderThickness="1"/>
                         </StackPanel>
+                        <StackPanel>
+                            
+                            <TextBlock Text="App Display Style:" Foreground="White" VerticalAlignment="Center"/>
+                            <ToggleSwitch IsChecked="{Binding UseCoverArtView}" 
+                                          OnContent="Cover Art" 
+                                          OffContent="Square Icons"/>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

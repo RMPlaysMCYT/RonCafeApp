@@ -270,19 +270,44 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(NewAppName) || string.IsNullOrWhiteSpace(NewAppExecutionPath))
             return;
+        
+        string finalIconPath = "/Assets/placeholder.png";
+        {
+            try
+            {
+                string imagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                    "RonCafeApp", "Images");
+                Directory.CreateDirectory(imagesDir);
+
+                string originalName = Path.GetFileNameWithoutExtension(NewIconPlaceHolder);
+                string extension = Path.GetExtension(NewIconPlaceHolder);
+                string uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
+                string newFileName = $"{originalName}_{uniqueId}{extension}";
+
+                string destinationPath = Path.Combine(imagesDir, newFileName);
+
+                File.Copy(NewIconPlaceHolder, destinationPath, true);
+
+                finalIconPath = destinationPath;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Failed to copy image: {ex.Message}");
+                finalIconPath = NewIconPlaceHolder; 
+            }
+        }
 
         _allApps.Add(new AppItem
         {
             Name             = NewAppName,
             Category         = SelectedCategory,
             getExecutionPATH = NewAppExecutionPath,
-            IconPlaceholder  = string.IsNullOrWhiteSpace(NewIconPlaceHolder)
-                               ? "/Assets/placeholder.png"
-                               : NewIconPlaceHolder
+            IconPlaceholder  = finalIconPath
         });
 
         SaveConfig();
         FilterApps();
+        
         NewAppName           = string.Empty;
         NewAppExecutionPath  = string.Empty;
         NewIconPlaceHolder   = string.Empty;
@@ -355,6 +380,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var config = JsonSerializer.Deserialize(json, AppJsonContext.Default.LauncherConfig)
                      ?? new LauncherConfig();
         _allApps = config.Apps;
+        UseCoverArtView = this.UseCoverArtView;
         try
         {
             LauncherBackground = SolidColorBrush.Parse(config.BackgroundColor);
@@ -373,6 +399,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
             BackgroundColor = (LauncherBackground as SolidColorBrush)?.Color.ToString() ?? "#1E1E2E",
             SidebarColor    = (SidebarBackground  as SolidColorBrush)?.Color.ToString() ?? "#181825",
             AccentColor     = (AccentColor        as SolidColorBrush)?.Color.ToString() ?? "#89B4FA",
+            UseCoveraArtReview = this.UseCoverArtView
         };
         File.WriteAllText(_configurationPath,
             JsonSerializer.Serialize(config, AppJsonContext.Default.LauncherConfig));
@@ -451,5 +478,12 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             AdminPasswordInput = string.Empty;
         }
+    }
+
+    private bool _useCoverArtView;
+    public bool UseCoverArtView
+    {
+        get => _useCoverArtView;
+        set { _useCoverArtView = value; Notify(nameof(UseCoverArtView)); SaveConfig();}
     }
 }
