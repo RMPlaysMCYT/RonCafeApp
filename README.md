@@ -8,10 +8,10 @@ _____
 _____
 ## Features
 * Add Game Selection
-* Add Categories 
+* Add Categories
+* Add Game Cover Art
 
 ## Upcoming Features
-* Add Game Cover Art (DIY)
 * Coin Timer for Business Edition
 
 ## NOTE:This is WIP while for personal usage it's okay but NOT FOR BUSINESS
