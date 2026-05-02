@@ -361,5 +361,9 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+
 /cafeLauncher.json
 /Output/mysetup.exe
+/Output/RonCafeLauncherSetup-1-0-2.exe
+/Output/
