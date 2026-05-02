@@ -73,7 +73,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="models:AppItem">
-                            <Panel Margin="0" Width="150" Height="250" VerticalAlignment="Top">
+                            <Panel Margin="5" Width="150" Height="250" VerticalAlignment="Top">
                                 
                                 <Border Background="#313244" CornerRadius="0" Padding="5">
                                     <Panel>
