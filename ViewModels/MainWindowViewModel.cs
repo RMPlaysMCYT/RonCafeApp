@@ -271,38 +271,16 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (string.IsNullOrWhiteSpace(NewAppName) || string.IsNullOrWhiteSpace(NewAppExecutionPath))
             return;
         
-        string finalIconPath = "/Assets/placeholder.png";
-        {
-            try
-            {
-                string imagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "RonCafeApp", "Images");
-                Directory.CreateDirectory(imagesDir);
-
-                string originalName = Path.GetFileNameWithoutExtension(NewIconPlaceHolder);
-                string extension = Path.GetExtension(NewIconPlaceHolder);
-                string uniqueId = Guid.NewGuid().ToString().Substring(0, 8);
-                string newFileName = $"{originalName}_{uniqueId}{extension}";
-
-                string destinationPath = Path.Combine(imagesDir, newFileName);
-
-                File.Copy(NewIconPlaceHolder, destinationPath, true);
-
-                finalIconPath = destinationPath;
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"Failed to copy image: {ex.Message}");
-                finalIconPath = NewIconPlaceHolder; 
-            }
-        }
+        string finalIconPath = CopyImageToLocal(NewIconPlaceHolder, "/Assets/placeholder.png");
+        string finalCoverPath = CopyImageToLocal(NewCoverArtPlaceHolder, "/Assets/placeholder.png");
 
         _allApps.Add(new AppItem
         {
             Name             = NewAppName,
             Category         = SelectedCategory,
             getExecutionPATH = NewAppExecutionPath,
-            IconPlaceholder  = finalIconPath
+            IconPlaceholder  = finalIconPath,
+            CoverArtPlaceholder = finalCoverPath
         });
 
         SaveConfig();
@@ -311,11 +289,16 @@ public class MainWindowViewModel : INotifyPropertyChanged
         NewAppName           = string.Empty;
         NewAppExecutionPath  = string.Empty;
         NewIconPlaceHolder   = string.Empty;
+        NewCoverArtPlaceHolder = string.Empty;
     }
 
     public void RemoveApp(object? param)
     {
         if (param is not AppItem app) return;
+        
+        DeleteLocalImage(app.IconPlaceholder);
+        DeleteLocalImage(app.CoverArtPlaceholder);
+        
         _allApps.Remove(app);
         SaveConfig();
         FilterApps();
@@ -380,7 +363,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var config = JsonSerializer.Deserialize(json, AppJsonContext.Default.LauncherConfig)
                      ?? new LauncherConfig();
         _allApps = config.Apps;
-        UseCoverArtView = this.UseCoverArtView;
+        UseCoverArtView = config.UseCoverArtReview;
         try
         {
             LauncherBackground = SolidColorBrush.Parse(config.BackgroundColor);
@@ -399,7 +382,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
             BackgroundColor = (LauncherBackground as SolidColorBrush)?.Color.ToString() ?? "#1E1E2E",
             SidebarColor    = (SidebarBackground  as SolidColorBrush)?.Color.ToString() ?? "#181825",
             AccentColor     = (AccentColor        as SolidColorBrush)?.Color.ToString() ?? "#89B4FA",
-            UseCoveraArtReview = this.UseCoverArtView
+            UseCoverArtReview = this.UseCoverArtView
         };
         File.WriteAllText(_configurationPath,
             JsonSerializer.Serialize(config, AppJsonContext.Default.LauncherConfig));
@@ -485,5 +468,70 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         get => _useCoverArtView;
         set { _useCoverArtView = value; Notify(nameof(UseCoverArtView)); SaveConfig();}
+    }
+
+    private string _newCoverArtPlaceHolder = string.Empty;
+
+    public string NewCoverArtPlaceHolder
+    {
+        get => _newCoverArtPlaceHolder;
+        set
+        {
+            if (_newCoverArtPlaceHolder != value)
+            {
+                _newCoverArtPlaceHolder = value;
+                Notify(nameof(NewCoverArtPlaceHolder));
+            }
+        }
+    }
+
+    public async void BrowseForCoverArt()
+    {
+        var files = await OpenPickerAsync("Select Cover Art (Tall)",
+            new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpeg", "*.jpg", "*.webp", "*.svg" } });
+        if (files?.Count >= 1) NewCoverArtPlaceHolder = files[0].Path.LocalPath;
+    }
+    
+    private string CopyImageToLocal(string sourcePath, string fallbackPlaceholder)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
+            return fallbackPlaceholder;
+
+        try
+        {
+            string imagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "Images");
+            Directory.CreateDirectory(imagesDir);
+
+            string originalName = Path.GetFileNameWithoutExtension(sourcePath);
+            string extension = Path.GetExtension(sourcePath);
+            string uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8); // Unique hash
+            string destinationPath = Path.Combine(imagesDir, $"{originalName}_{uniqueId}{extension}");
+
+            File.Copy(sourcePath, destinationPath, true);
+            return destinationPath;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to copy image: {ex.Message}");
+            return sourcePath; // If it fails, fallback to using the original path
+        }
+    }
+
+    private void DeleteLocalImage(string imagePath)
+    {
+        if (string.IsNullOrWhiteSpace(imagePath)) return;
+    
+        try
+        {
+            // SAFETY CHECK: Only delete the file if it's inside our dedicated Images folder!
+            // We don't want to accidentally delete a user's picture from their Downloads folder.
+            string imagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "Images");
+        
+            if (imagePath.StartsWith(imagesDir) && File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
+            }
+        }
+        catch (Exception ex) { Console.WriteLine($"Could not delete image {imagePath}: {ex.Message}"); }
     }
 }

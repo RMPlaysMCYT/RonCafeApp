@@ -12,7 +12,7 @@ public class AppItem
     public string Category { get; set; } = string.Empty;
     public string getExecutionPATH { get; set;  } = string.Empty; 
     public string IconPlaceholder { get; set; } = string.Empty;
-
+    public string CoverArtPlaceholder { get; set; } = string.Empty;
     private bool _categoryLOCKED;
 
     [JsonIgnore]

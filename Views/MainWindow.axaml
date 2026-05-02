@@ -72,32 +72,27 @@
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="models:AppItem">
-                                <Panel Margin="8" Width="180"  Height="250" VerticalAlignment="Center">
-                                    <Border Background="#313244"
-                                            CornerRadius="10"
-                                            Padding="15">
+                        <DataTemplate x:DataType="models:AppItem">
+                            <Panel Margin="0" Width="150" Height="250" VerticalAlignment="Top">
+                                
+                                <Border Background="#313244" CornerRadius="0" Padding="5">
+                                    <Panel>
+                                        
+                                        <!-- ── VIEW 1: Square Icon + Name + Button ── -->
                                         <StackPanel HorizontalAlignment="Center"
                                                     VerticalAlignment="Center"
-                                                    Spacing="8">
-                                            <Panel>
-                                                <!-- View 1: Square Icon (Visible when UseCoverArtView is FALSE) -->
-                                                <Image Width="64" Height="64" 
-                                                       Source="{Binding IconPlaceholder, Converter={StaticResource ImgConv}}"
-                                                       IsVisible="{Binding !$parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"/>
-
-                                                <!-- View 2: Tall Cover Art (Visible when UseCoverArtView is TRUE) -->
-                                                <Image Width="120" Height="160" Stretch="UniformToFill"
-                                                       Source="{Binding IconPlaceholder, Converter={StaticResource ImgConv}}"
-                                                       IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"/>
-                                            </Panel>
+                                                    Spacing="8"
+                                                    IsVisible="{Binding !$parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}">
+                                            
+                                            <Image Width="64" Height="64" 
+                                                   Source="{Binding IconPlaceholder, Converter={StaticResource ImgConv}}"
+                                                   HorizontalAlignment="Center"/>
                                             <TextBlock Text="{Binding Name}"
                                                        Foreground="White"
                                                        TextAlignment="Center"
                                                        TextWrapping="Wrap"
                                                        MaxWidth="130"
                                                        FontSize="12"/>
-                                            
                                             <Button Content="▶ Launch"
                                                     Background="#A6E3A1"
                                                     Foreground="#11111B"
@@ -108,19 +103,39 @@
                                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
                                                     CommandParameter="{Binding}"/>
                                         </StackPanel>
-                                    </Border>
-                                    
-                                    <Border Background="#B3000000" CornerRadius="10" 
-                                            IsVisible="{Binding CategoryLocked}" 
-                                            IsHitTestVisible="False">
-                                        <TextBlock Text="🔒 LOCKED" 
-                                                   Foreground="#F38BA8" 
-                                                   FontWeight="Bold"
-                                                   HorizontalAlignment="Center" 
-                                                   VerticalAlignment="Center"/>
-                                    </Border>
-                                </Panel>
-                            </DataTemplate>
+
+                                        <!-- ── VIEW 2: Clickable Cover Art ── -->
+                                        <!-- We wrap the Image in a Button, make the Button transparent, and assign the Launch command directly to it! -->
+                                        <Button Background="Transparent" 
+                                                Padding="0" 
+                                                BorderThickness="0"
+                                                HorizontalAlignment="Center" 
+                                                VerticalAlignment="Center"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
+                                                CommandParameter="{Binding}"
+                                                IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"
+                                                ToolTip.Tip="{Binding Name}">
+                                            
+                                            <!-- The image itself -->
+                                            <Image Width="120" Height="220" Stretch="UniformToFill"
+                                                   Source="{Binding CoverArtPlaceholder, Converter={StaticResource ImgConv}}"/>
+                                        </Button>
+                                        
+                                    </Panel>
+                                </Border>
+                                
+                                <!-- ── Lock Overlay (Stays the same!) ── -->
+                                <Border Background="#B3000000" CornerRadius="10" 
+                                        IsVisible="{Binding CategoryLocked}" 
+                                        IsHitTestVisible="False">
+                                    <TextBlock Text="🔒 LOCKED" 
+                                               Foreground="#F38BA8" 
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center" 
+                                               VerticalAlignment="Center"/>
+                                </Border>
+                            </Panel>
+                        </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
