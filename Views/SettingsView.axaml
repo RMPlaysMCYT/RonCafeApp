@@ -64,12 +64,29 @@
                                     Background="#313244" Foreground="White"/>
                         </Grid>
 
-                        <Button Content="✚ Confirm and Add App"
-                                Command="{Binding AddNewApp}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Center"
-                                Background="#A6E3A1" Foreground="#11111B"
-                                FontWeight="Bold" Padding="12"/>
+                        <Grid ColumnDefinitions="*, Auto">
+                            <Button Grid.Column="0"
+                                    Content="{Binding AddOrSaveButn}"
+                                    Command="{Binding AddNewApp}"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Background="AliceBlue"
+                                    Foreground="Aqua"
+                                    FontWeight="Bold"
+                                    Padding="12"
+                                    Margin="0,0,10,0"
+                                    />
+                            <Button Grid.Column="1"
+                                    Content="Cancel Edit"
+                                    Command="{Binding CancelEditApp}"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center"
+                                    Background="AliceBlue"
+                                    Foreground="Aqua"
+                                    FontWeight="Bold"
+                                    Padding="12"
+                                    Margin="0,0,10,0" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 
@@ -88,7 +105,7 @@
                                 <DataTemplate x:DataType="models:AppItem">
                                     <Border Background="#313244"
                                             Margin="0,0,0,5" Padding="10" CornerRadius="5">
-                                        <Grid ColumnDefinitions="50, *, Auto">
+                                        <Grid ColumnDefinitions="50, *, Auto, Auto">
                                             <Image Grid.Column="0" Width="32" Height="32"
                                                    Source="{Binding IconPlaceholder,
                                                        Converter={StaticResource ImgConv}}"/>
@@ -101,11 +118,17 @@
                                                            TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
                                             <!-- $parent[UserControl] reaches SettingsView's DataContext -->
-                                            <Button Grid.Column="2"
+                                            <Button Grid.Column="1"
                                                     Content="✕ Remove"
                                                     Foreground="#F38BA8"
                                                     Background="Transparent"
                                                     Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).RemoveApp}"
+                                                    CommandParameter="{Binding}"/>
+                                            <Button Grid.Column="2"
+                                                    Content="✏️ Edit"
+                                                    Foreground="#F38BA8"
+                                                    Background="Transparent"
+                                                    Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).EditApp}"
                                                     CommandParameter="{Binding}"/>
                                         </Grid>
                                     </Border>

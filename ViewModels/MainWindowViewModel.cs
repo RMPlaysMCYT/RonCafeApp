@@ -128,7 +128,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     public List<string> Categories { get; } = new()
     {
-        "Games", "Documents", "Programming", "Entertainment", "Utilities"
+        "Games", "Documents", "Programming", "Creative", "Entertainment", "Utilities"
     };
 
     private string _selectedCategory = "Games";
@@ -274,18 +274,34 @@ public class MainWindowViewModel : INotifyPropertyChanged
         string finalIconPath = CopyImageToLocal(NewIconPlaceHolder, "/Assets/placeholder.png");
         string finalCoverPath = CopyImageToLocal(NewCoverArtPlaceHolder, "/Assets/placeholder.png");
 
-        _allApps.Add(new AppItem
+        if (_editingApp != null)
         {
-            Name             = NewAppName,
-            Category         = SelectedCategory,
-            getExecutionPATH = NewAppExecutionPath,
-            IconPlaceholder  = finalIconPath,
-            CoverArtPlaceholder = finalCoverPath
-        });
+            if(_editingApp.IconPlaceholder != finalIconPath)
+                DeleteLocalImage(_editingApp.IconPlaceholder);
+            
+            if(_editingApp.CoverArtPlaceholder != finalCoverPath)
+                DeleteLocalImage(_editingApp.CoverArtPlaceholder);
+            
+            _editingApp.Name = NewAppName;
+            _editingApp.Category = SelectedCategory;
+            _editingApp.IconPlaceholder = finalIconPath;
+            _editingApp.CoverArtPlaceholder = finalCoverPath;
+        }
+        else
+        {
+            _allApps.Add(new AppItem
+            {
+                Name             = NewAppName,
+                Category         = SelectedCategory,
+                getExecutionPATH = NewAppExecutionPath,
+                IconPlaceholder  = finalIconPath,
+                CoverArtPlaceholder = finalCoverPath
+            });
+        }
 
         SaveConfig();
         FilterApps();
-        
+        CancelEditApp();
         NewAppName           = string.Empty;
         NewAppExecutionPath  = string.Empty;
         NewIconPlaceHolder   = string.Empty;
@@ -533,5 +549,36 @@ public class MainWindowViewModel : INotifyPropertyChanged
             }
         }
         catch (Exception ex) { Console.WriteLine($"Could not delete image {imagePath}: {ex.Message}"); }
+    }
+
+    private AppItem? _editingApp;
+    public string AddOrSaveButn => _editingApp == null ? "Add" : "Edit";
+    public bool isEditing => _editingApp != null;
+
+    public void EditApp(object? param)
+    {
+        if (param is not AppItem appItem) return;
+        _editingApp = appItem;
+
+        NewAppName = appItem.Name;
+        NewAppExecutionPath = appItem.getExecutionPATH;
+        NewIconPlaceHolder = appItem.IconPlaceholder;
+        NewCoverArtPlaceHolder = appItem.CoverArtPlaceholder;
+
+        SelectedCategory = appItem.Category;
+        
+        Notify(nameof(AddOrSaveButn));
+        Notify(nameof(isEditing));
+    }
+
+    public void CancelEditApp()
+    {
+        _editingApp = null;
+        NewAppName = string.Empty;
+        NewAppExecutionPath = string.Empty;
+        NewIconPlaceHolder = string.Empty;
+        NewCoverArtPlaceHolder = string.Empty;
+        Notify(nameof(AddOrSaveButn));
+        Notify(nameof(isEditing));
     }
 }
