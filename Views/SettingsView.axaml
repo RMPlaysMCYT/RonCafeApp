@@ -118,13 +118,13 @@
                                                            TextTrimming="CharacterEllipsis"/>
                                             </StackPanel>
                                             <!-- $parent[UserControl] reaches SettingsView's DataContext -->
-                                            <Button Grid.Column="1"
+                                            <Button Grid.Column="2"
                                                     Content="✕ Remove"
                                                     Foreground="#F38BA8"
                                                     Background="Transparent"
                                                     Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).RemoveApp}"
                                                     CommandParameter="{Binding}"/>
-                                            <Button Grid.Column="2"
+                                            <Button Grid.Column="3"
                                                     Content="✏️ Edit"
                                                     Foreground="#F38BA8"
                                                     Background="Transparent"
