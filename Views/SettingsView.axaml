@@ -61,7 +61,8 @@
                             <Button Grid.Row="3" Grid.Column="1"
                                     Content="Browse Cover"
                                     Command="{Binding BrowseForCoverArt}"
-                                    Background="#313244" Foreground="White"/>
+                                    Background="#313244" Foreground="White"
+                                    Margin="0,10,0,0"/>
                         </Grid>
 
                         <Grid ColumnDefinitions="*, Auto">
