@@ -258,7 +258,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
                 try
                 {
                     var proc = Process.GetProcessById(item.Key);
-                    proc.Kill();
+                    proc.Kill(true);
                     _runningProcess.Remove(item.Key);
                 }
                 catch { /* Process might already be closed */ }

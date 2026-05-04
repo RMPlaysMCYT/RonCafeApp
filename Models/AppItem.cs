@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 namespace RonCafeApp.Models;
-public class AppItem
+public class AppItem: INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     public string Name { get; set; } = string.Empty;
