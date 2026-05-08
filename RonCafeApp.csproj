@@ -22,7 +22,7 @@
 
   <ItemGroup>
 	  <Folder Include="src\" />
-	  <AvaloniaResource Include="Assets\placeholder.png" />
+	  <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 
   <ItemGroup>

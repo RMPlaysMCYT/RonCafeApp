@@ -22,7 +22,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private readonly string _configurationPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "appsettings.json");
+        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "RonCafeLauncherSettings.json");
 
     private readonly Dictionary<int, string> _runningProcess = new();
     private readonly ClockDisplay _clockDisplay;
@@ -580,5 +580,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
         NewCoverArtPlaceHolder = string.Empty;
         Notify(nameof(AddOrSaveButn));
         Notify(nameof(isEditing));
+    }
+
+    public void ExitLauncher()
+    {
+        System.Environment.Exit(0);
     }
 }

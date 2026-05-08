@@ -9,7 +9,9 @@
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="750"
         x:Class="RonCafeApp.MainWindow"
         x:DataType="vm:MainWindowViewModel"
+        WindowDecorations="None"
         Title="Ron Cafe Launcher"
+        Icon="avares://RonCafeApp/Assets/Icon 256.png"
         Background="{Binding LauncherBackground}">
 
     <Window.DataContext>
