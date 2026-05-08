@@ -26,7 +26,7 @@
         <!-- ── Sidebar ── -->
         <Border Grid.Column="0" Background="{Binding SidebarBackground}" Padding="10">
             <Grid RowDefinitions="Auto, Auto, *, Auto">
-                <Image Grid.Row="0" Stretch="Uniform" Width="160" Height="200" Source="avares://RonCafeApp/Assets/placeholder.png"/>
+                <Image Grid.Row="0" Stretch="Uniform" Width="160" Height="200" Source="avares://RonCafeApp/Assets/3_objectsicon.png"/>
                 <TextBlock Grid.Row="1" Text="{Binding CurrentTime}" Foreground="White" FontSize="24"
                            FontWeight="Bold"
                            VerticalAlignment="Center"
@@ -148,7 +148,7 @@
                             Background="{Binding LauncherBackground}"
                             IsVisible="{Binding CurrentPage,
                                 Converter={x:Static ObjectConverters.IsNotNull}}"/>
-            <TextBlock Text="Version 1.0.3"
+            <TextBlock Text="Version 1.1.0"
                        HorizontalAlignment="Right"
                        VerticalAlignment="Bottom"
                        Margin="0,0,10,10"

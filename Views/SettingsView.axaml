@@ -213,6 +213,13 @@
                            HorizontalAlignment="Left"
                            VerticalAlignment="Bottom"
                            />
+                
+                <TextBlock Text="Icons By Icons8"
+                           HorizontalAlignment="Left"
+                           VerticalAlignment="Bottom"
+                           Margin="0,20,10,10"
+                           Foreground="White"
+                />
             </StackPanel>
         </ScrollViewer>
     </Grid>
