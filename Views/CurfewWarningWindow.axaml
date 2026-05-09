@@ -3,7 +3,7 @@
         x:Class="RonCafeApp.Views.CurfewWarningWindow"
         Title="Curfew Warning" Width="400" Height="150"
         Background="Transparent" TransparencyLevelHint="AcrylicBlur"
-        SystemDecorations="None" Topmost="True" WindowStartupLocation="CenterScreen" CanResize="False">
+        WindowDecorations="None" Topmost="True" WindowStartupLocation="CenterScreen" CanResize="False">
     <Border Background="#CCFF5555" CornerRadius="15" Padding="20">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
             <TextBlock Text="⚠️ CURFEW WARNING" FontSize="22" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
