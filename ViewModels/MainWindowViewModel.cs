@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using RonCafeApp.Models;
 using RonCafeApp.Services;
 using System.Collections.Generic;
@@ -21,10 +21,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private readonly string _configurationPath = Path.Combine(
+    // ─── Legacy JSON path (for migration) ────────────────────────────────────
+    private readonly string _legacyConfigurationPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "RonCafeLauncherSettings.json");
 
-    private readonly Dictionary<int, string> _runningProcess = new();
+    private readonly DatabaseService _dbService;
     private readonly ClockDisplay _clockDisplay;
 
     private AppItem? _pendingLockApp;
@@ -35,14 +36,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
         get => _currentTime;
         set { _currentTime = value; Notify(nameof(CurrentTime)); }
     }
-    
-    
+
     private object? _currentPage;
     public object? CurrentPage
     {
         get => _currentPage;
         set { _currentPage = value; Notify(nameof(CurrentPage)); }
     }
+
     private IBrush _launcherBackground = SolidColorBrush.Parse("#1E1E2E");
     public IBrush LauncherBackground
     {
@@ -63,38 +64,28 @@ public class MainWindowViewModel : INotifyPropertyChanged
         get => _accentColor;
         set { _accentColor = value; Notify(nameof(AccentColor)); }
     }
+
+    // Theme colors dictionary for cleaner theme switching
+    private static readonly Dictionary<string, (string bg, string sidebar, string accent)> ThemeColors = new()
+    {
+        ["Mocha"] = ("#1E1E2E", "#181825", "#89B4FA"),
+        ["Ocean"] = ("#0D1B2A", "#0A1220", "#64DFDF"),
+        ["Forest"] = ("#1A2318", "#141C12", "#A6E3A1"),
+        ["Sunset"] = ("#2E1A1A", "#241414", "#FAB387"),
+        ["Midnight"] = ("#0A0A0F", "#07070B", "#CBA6F7"),
+    };
+
     public void SetTheme(object? param)
     {
-        switch (param as string)
+        if (param is string themeName && ThemeColors.TryGetValue(themeName, out var colors))
         {
-            case "Mocha": // default dark
-                LauncherBackground = SolidColorBrush.Parse("#1E1E2E");
-                SidebarBackground  = SolidColorBrush.Parse("#181825");
-                AccentColor        = SolidColorBrush.Parse("#89B4FA");
-                break;
-            case "Ocean":
-                LauncherBackground = SolidColorBrush.Parse("#0D1B2A");
-                SidebarBackground  = SolidColorBrush.Parse("#0A1220");
-                AccentColor        = SolidColorBrush.Parse("#64DFDF");
-                break;
-            case "Forest":
-                LauncherBackground = SolidColorBrush.Parse("#1A2318");
-                SidebarBackground  = SolidColorBrush.Parse("#141C12");
-                AccentColor        = SolidColorBrush.Parse("#A6E3A1");
-                break;
-            case "Sunset":
-                LauncherBackground = SolidColorBrush.Parse("#2E1A1A");
-                SidebarBackground  = SolidColorBrush.Parse("#241414");
-                AccentColor        = SolidColorBrush.Parse("#FAB387");
-                break;
-            case "Midnight":
-                LauncherBackground = SolidColorBrush.Parse("#0A0A0F");
-                SidebarBackground  = SolidColorBrush.Parse("#07070B");
-                AccentColor        = SolidColorBrush.Parse("#CBA6F7");
-                break;
+            LauncherBackground = SolidColorBrush.Parse(colors.bg);
+            SidebarBackground = SolidColorBrush.Parse(colors.sidebar);
+            AccentColor = SolidColorBrush.Parse(colors.accent);
+            SaveConfig();
         }
-        SaveConfig();
     }
+
     private string _newAppName = string.Empty;
     public string NewAppName
     {
@@ -115,6 +106,21 @@ public class MainWindowViewModel : INotifyPropertyChanged
         get => _newIconPlaceHolder;
         set { if (_newIconPlaceHolder != value) { _newIconPlaceHolder = value; Notify(nameof(NewIconPlaceHolder)); } }
     }
+
+    private string _newCoverArtPlaceHolder = string.Empty;
+    public string NewCoverArtPlaceHolder
+    {
+        get => _newCoverArtPlaceHolder;
+        set
+        {
+            if (_newCoverArtPlaceHolder != value)
+            {
+                _newCoverArtPlaceHolder = value;
+                Notify(nameof(NewCoverArtPlaceHolder));
+            }
+        }
+    }
+
     public bool IsAppListEmpty => DisplayedApps.Count == 0;
 
     private List<AppItem> _allApps = new();
@@ -146,18 +152,74 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    // ─── Admin Password & Settings ───────────────────────────────────────────
+    private string _adminPassword = string.Empty;
+    public string AdminPasswordInput
+    {
+        get => _adminPassword;
+        set { if (_adminPassword != value) { _adminPassword = value; Notify(nameof(AdminPasswordInput)); } }
+    }
+
+    private bool _isTryToOpenSettings = false;
+    private string _savedAdminPassword = "abcadmin123";
+
+    private bool _useCoverArtView;
+    public bool UseCoverArtView
+    {
+        get => _useCoverArtView;
+        set { _useCoverArtView = value; Notify(nameof(UseCoverArtView)); SaveConfig(); }
+    }
+
+    private AppItem? _editingApp;
+    public string AddOrSaveButn => _editingApp == null ? "Add" : "Edit";
+    public bool isEditing => _editingApp != null;
+
     // ─── Constructor ─────────────────────────────────────────────────────────
     public MainWindowViewModel()
     {
+        _dbService = new DatabaseService();
+        _dbService.InitializeDatabase();
+
         _clockDisplay = new ClockDisplay();
 
+        // Setup clock event handlers (FIXED: no duplicates)
         _clockDisplay.OnMinuteChanged += (now) =>
         {
             CurrentTime = now.ToString("HH:mm:ss");
         };
 
-        _clockDisplay.OnCurfewReached += StopGamesActivity;
-        
+        _clockDisplay.OnWarningTriggered += (mins) =>
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                new RonCafeApp.Views.CurfewWarningWindow().Show();
+            });
+        };
+
+        _clockDisplay.OnCurfewReached += () =>
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                foreach (var app in _allApps.Where(a => a.Category == "Games"))
+                {
+                    app.CategoryLocked = true;
+                }
+                KillGamesOnly();
+            });
+        };
+
+        _clockDisplay.OnCurfewLifted += () =>
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                foreach (var app in _allApps.Where(a => a.Category == "Games"))
+                {
+                    app.CategoryLocked = false;
+                }
+            });
+        };
+
+        // Load config (with migration support)
         LoadConfig();
 
         if (_clockDisplay.IsCurrentlyInCurfewState())
@@ -168,101 +230,59 @@ public class MainWindowViewModel : INotifyPropertyChanged
             }
         }
 
-// 1. Update Clock UI
-        _clockDisplay.OnMinuteChanged += (now) => {
-            CurrentTime = now.ToString("hh:mm:ss tt");
-        };
-
-        // 2. Show Warning Overlay
-        _clockDisplay.OnWarningTriggered += (mins) => {
-            Dispatcher.UIThread.Post(() => {
-                new RonCafeApp.Views.CurfewWarningWindow().Show();
-            });
-        };
-
-        // 3. Trigger Curfew (10:00 PM)
-        _clockDisplay.OnCurfewReached += () => {
-            Dispatcher.UIThread.Post(() => {
-                foreach (var app in _allApps.Where(a => a.Category == "Games"))
-                {
-                    app.CategoryLocked = true;
-                }
-                KillGamesOnly();
-            });
-        };
-
-        // 4. --- NEW: Lift Curfew (6:00 AM) ---
-        _clockDisplay.OnCurfewLifted += () => {
-            Dispatcher.UIThread.Post(() => {
-                foreach (var app in _allApps.Where(a => a.Category == "Games"))
-                {
-                    app.CategoryLocked = false; // Unlock!
-                }
-            });
-        };
-        
         FilterApps();
     }
 
     // ─── App CRUD ────────────────────────────────────────────────────────────
     public void LaunchApp(object? param)
     {
-        // Now expects an AppItem instead of a string
-        if (param is not AppItem app || string.IsNullOrWhiteSpace(app.getExecutionPATH)) return;
+        if (param is not AppItem app || string.IsNullOrWhiteSpace(app.getExecutionPATH))
+            return;
 
         if (app.CategoryLocked)
         {
             _pendingLockApp = app;
-            PasswordScreen(); // Opens your existing password screen
+            PasswordScreen();
             return;
         }
 
-        ExecuteGameLaunch(app.getExecutionPATH, app.Category);
+        ExecuteGameLaunch(app);
     }
 
-    private void ExecuteGameLaunch(string execPath, string category)
+    private void ExecuteGameLaunch(AppItem app)
     {
         try
         {
             var process = Process.Start(new ProcessStartInfo
             {
-                FileName = execPath,
-                WorkingDirectory = Path.GetDirectoryName(execPath),
+                FileName = app.getExecutionPATH,
+                WorkingDirectory = Path.GetDirectoryName(app.getExecutionPATH),
                 UseShellExecute = true
             });
 
-            if (process != null && category == "Games")
+            if (process != null && app.Category == "Games")
             {
-                _runningProcess.Add(process.Id, category);
+                _dbService.LogProcessStart(app.Id, process.Id, app.Category);
             }
         }
-        catch (System.Exception ex) { System.Console.WriteLine($"Could not launch app: {ex.Message}"); }
-    }
-
-    public void VerifyAdminPassword(string enteredPassword)
-    {
-        if (enteredPassword == "admin123" && _pendingLockApp != null)
+        catch (Exception ex)
         {
-            ExecuteGameLaunch(_pendingLockApp.getExecutionPATH, _pendingLockApp.Category);
-            _pendingLockApp = null;
-            CloseSettings(); // Closes the password overlay
+            Console.WriteLine($"Could not launch app: {ex.Message}");
         }
     }
 
     private void KillGamesOnly()
     {
-        foreach (var item in _runningProcess.ToList())
+        var gameProcesses = _dbService.GetRunningGameProcesses();
+        foreach (var (processId, _) in gameProcesses)
         {
-            if (item.Value == "Games")
+            try
             {
-                try
-                {
-                    var proc = Process.GetProcessById(item.Key);
-                    proc.Kill(true);
-                    _runningProcess.Remove(item.Key);
-                }
-                catch { /* Process might already be closed */ }
+                var proc = Process.GetProcessById(processId);
+                proc.Kill(true);
+                _dbService.LogProcessEnd(processId);
             }
+            catch { /* Process might already be closed */ }
         }
     }
 
@@ -270,62 +290,99 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(NewAppName) || string.IsNullOrWhiteSpace(NewAppExecutionPath))
             return;
-        
+
         string finalIconPath = CopyImageToLocal(NewIconPlaceHolder, "/Assets/placeholder.png");
         string finalCoverPath = CopyImageToLocal(NewCoverArtPlaceHolder, "/Assets/placeholder.png");
 
         if (_editingApp != null)
         {
-            if(_editingApp.IconPlaceholder != finalIconPath)
+            // Update existing app
+            if (_editingApp.IconPlaceholder != finalIconPath)
                 DeleteLocalImage(_editingApp.IconPlaceholder);
-            
-            if(_editingApp.CoverArtPlaceholder != finalCoverPath)
+
+            if (_editingApp.CoverArtPlaceholder != finalCoverPath)
                 DeleteLocalImage(_editingApp.CoverArtPlaceholder);
-            
+
             _editingApp.Name = NewAppName;
             _editingApp.Category = SelectedCategory;
+            _editingApp.getExecutionPATH = NewAppExecutionPath;
             _editingApp.IconPlaceholder = finalIconPath;
             _editingApp.CoverArtPlaceholder = finalCoverPath;
+
+            _dbService.UpdateApp(_editingApp);
         }
         else
         {
-            _allApps.Add(new AppItem
+            // Add new app
+            var newApp = new AppItem
             {
-                Name             = NewAppName,
-                Category         = SelectedCategory,
+                Name = NewAppName,
+                Category = SelectedCategory,
                 getExecutionPATH = NewAppExecutionPath,
-                IconPlaceholder  = finalIconPath,
+                IconPlaceholder = finalIconPath,
                 CoverArtPlaceholder = finalCoverPath
-            });
+            };
+
+            newApp.Id = _dbService.AddApp(newApp);
+            _allApps.Add(newApp);
         }
 
-        SaveConfig();
         FilterApps();
         CancelEditApp();
-        NewAppName           = string.Empty;
-        NewAppExecutionPath  = string.Empty;
-        NewIconPlaceHolder   = string.Empty;
-        NewCoverArtPlaceHolder = string.Empty;
+        ClearFormFields();
     }
 
     public void RemoveApp(object? param)
     {
         if (param is not AppItem app) return;
-        
+
         DeleteLocalImage(app.IconPlaceholder);
         DeleteLocalImage(app.CoverArtPlaceholder);
-        
+
+        _dbService.DeleteApp(app.Id);
         _allApps.Remove(app);
-        SaveConfig();
         FilterApps();
     }
 
-    // ─── File pickers ────────────────────────────────────────────────────────
+    public void EditApp(object? param)
+    {
+        if (param is not AppItem appItem) return;
+        _editingApp = appItem;
+
+        NewAppName = appItem.Name;
+        NewAppExecutionPath = appItem.getExecutionPATH;
+        NewIconPlaceHolder = appItem.IconPlaceholder;
+        NewCoverArtPlaceHolder = appItem.CoverArtPlaceholder;
+
+        SelectedCategory = appItem.Category;
+
+        Notify(nameof(AddOrSaveButn));
+        Notify(nameof(isEditing));
+    }
+
+    public void CancelEditApp()
+    {
+        _editingApp = null;
+        ClearFormFields();
+        Notify(nameof(AddOrSaveButn));
+        Notify(nameof(isEditing));
+    }
+
+    private void ClearFormFields()
+    {
+        NewAppName = string.Empty;
+        NewAppExecutionPath = string.Empty;
+        NewIconPlaceHolder = string.Empty;
+        NewCoverArtPlaceHolder = string.Empty;
+    }
+
+    // ─── File Pickers ───────────────────────────────────────────────────────
     public async void BrowseForExecutable()
     {
         var files = await OpenPickerAsync("Select Game Executable",
             new FilePickerFileType("Executables") { Patterns = new[] { "*.exe" } });
-        if (files?.Count >= 1) NewAppExecutionPath = files[0].Path.LocalPath;
+        if (files?.Count >= 1)
+            NewAppExecutionPath = files[0].Path.LocalPath;
     }
 
     public async void BrowseForIcon()
@@ -333,7 +390,16 @@ public class MainWindowViewModel : INotifyPropertyChanged
         var files = await OpenPickerAsync("Select App Icon",
             new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.ico", "*.webp" } },
             new FilePickerFileType("All Files") { Patterns = new[] { "*.*" } });
-        if (files?.Count >= 1) NewIconPlaceHolder = files[0].Path.LocalPath;
+        if (files?.Count >= 1)
+            NewIconPlaceHolder = files[0].Path.LocalPath;
+    }
+
+    public async void BrowseForCoverArt()
+    {
+        var files = await OpenPickerAsync("Select Cover Art (Tall)",
+            new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpeg", "*.jpg", "*.webp", "*.svg" } });
+        if (files?.Count >= 1)
+            NewCoverArtPlaceHolder = files[0].Path.LocalPath;
     }
 
     private static async System.Threading.Tasks.Task<IReadOnlyList<IStorageFile>?> OpenPickerAsync(
@@ -345,108 +411,23 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (topLevel == null) return null;
         return await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = title, AllowMultiple = false, FileTypeFilter = filters
+            Title = title,
+            AllowMultiple = false,
+            FileTypeFilter = filters
         });
     }
 
     // ─── Navigation ──────────────────────────────────────────────────────────
-    public void ShowSettings()  => CurrentPage = new RonCafeApp.Views.SettingsView { DataContext = this };
-
+    public void ShowSettings() => CurrentPage = new RonCafeApp.Views.SettingsView { DataContext = this };
     public void PasswordScreen() => CurrentPage = new RonCafeApp.Views.PasswordScreen { DataContext = this };
     public void CloseSettings() => CurrentPage = null;
 
-    // ─── Persistence ─────────────────────────────────────────────────────────
-    private void LoadConfig()
-    {
-        if (!File.Exists(_configurationPath))
-        {
-            _allApps = new List<AppItem>();
-            SaveConfig();
-            return;
-        }
-
-        string json = File.ReadAllText(_configurationPath);
-
-        // Handle old plain-array format
-        if (json.TrimStart().StartsWith("["))
-        {
-            _allApps = JsonSerializer.Deserialize(json, AppJsonContext.Default.ListAppItem)
-                       ?? new List<AppItem>();
-            SaveConfig();
-            return;
-        }
-
-        var config = JsonSerializer.Deserialize(json, AppJsonContext.Default.LauncherConfig)
-                     ?? new LauncherConfig();
-        _allApps = config.Apps;
-        UseCoverArtView = config.UseCoverArtReview;
-        try
-        {
-            LauncherBackground = SolidColorBrush.Parse(config.BackgroundColor);
-            SidebarBackground  = SolidColorBrush.Parse(config.SidebarColor);
-            AccentColor        = SolidColorBrush.Parse(config.AccentColor);
-        }
-        catch { /* keep defaults */ }
-    }
-
-    private void SaveConfig()
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(_configurationPath)!);
-        var config = new LauncherConfig
-        {
-            Apps            = _allApps,
-            BackgroundColor = (LauncherBackground as SolidColorBrush)?.Color.ToString() ?? "#1E1E2E",
-            SidebarColor    = (SidebarBackground  as SolidColorBrush)?.Color.ToString() ?? "#181825",
-            AccentColor     = (AccentColor        as SolidColorBrush)?.Color.ToString() ?? "#89B4FA",
-            UseCoverArtReview = this.UseCoverArtView
-        };
-        File.WriteAllText(_configurationPath,
-            JsonSerializer.Serialize(config, AppJsonContext.Default.LauncherConfig));
-    }
-
-
-    private void FilterApps()
-    {
-        DisplayedApps = new ObservableCollection<AppItem>(
-            _allApps.Where(a => a.Category == SelectedCategory));
-        Notify(nameof(IsAppListEmpty));
-    }
-
-    private void Notify(string name) =>
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-    private void StopGamesActivity()
-    {
-        foreach (var item in _runningProcess.ToList())
-        {
-            if (item.Value == "Games")
-            {
-                try
-                {
-                    var proc = Process.GetProcessById(item.Key);
-                    proc.Kill();
-                    _runningProcess.Remove(item.Key);
-                }
-                catch{}
-            }
-        }
-    }
-    
-    private string _adminPassword = string.Empty;
-    public string AdminPasswordInput
-    {
-        get => _adminPassword;
-        set {if (_adminPassword != value) {_adminPassword = value; Notify(nameof(AdminPasswordInput)); }}
-    }
-
-    private bool _isTryToOpenSettings = false;
-    private string _savedAdminPassword = "abcadmin123";
-
+    // ─── Password Management ─────────────────────────────────────────────────
     public void PromptSettingsPassword()
     {
         _isTryToOpenSettings = true;
         AdminPasswordInput = string.Empty;
-        CurrentPage = new RonCafeApp.Views.PasswordScreen{DataContext = this };
+        CurrentPage = new RonCafeApp.Views.PasswordScreen { DataContext = this };
     }
 
     public void CancelPasswordCommand()
@@ -468,9 +449,9 @@ public class MainWindowViewModel : INotifyPropertyChanged
             }
             else if (_pendingLockApp != null)
             {
-                ExecuteGameLaunch(_pendingLockApp.getExecutionPATH, _pendingLockApp.Category);
+                ExecuteGameLaunch(_pendingLockApp);
                 _pendingLockApp = null;
-                CloseSettings(); 
+                CloseSettings();
             }
         }
         else
@@ -479,35 +460,108 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    private bool _useCoverArtView;
-    public bool UseCoverArtView
+    public void ExitLauncher()
     {
-        get => _useCoverArtView;
-        set { _useCoverArtView = value; Notify(nameof(UseCoverArtView)); SaveConfig();}
+        Environment.Exit(0);
     }
 
-    private string _newCoverArtPlaceHolder = string.Empty;
-
-    public string NewCoverArtPlaceHolder
+    // ─── Persistence ────────────────────────────────────────────────────────
+    private void LoadConfig()
     {
-        get => _newCoverArtPlaceHolder;
-        set
+        // First check if we need to migrate from JSON
+        if (File.Exists(_legacyConfigurationPath) && !_dbService.HasExistingData())
         {
-            if (_newCoverArtPlaceHolder != value)
-            {
-                _newCoverArtPlaceHolder = value;
-                Notify(nameof(NewCoverArtPlaceHolder));
-            }
+            Console.WriteLine("Migrating from JSON to SQLite...");
+            MigrateFromJson();
+        }
+
+        // Load from database
+        try
+        {
+            var config = _dbService.LoadConfig();
+            _allApps = config.Apps;
+            UseCoverArtView = config.UseCoverArtReview;
+
+            LauncherBackground = SolidColorBrush.Parse(config.BackgroundColor);
+            SidebarBackground = SolidColorBrush.Parse(config.SidebarColor);
+            AccentColor = SolidColorBrush.Parse(config.AccentColor);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading config: {ex.Message}");
+            _allApps = new List<AppItem>();
         }
     }
 
-    public async void BrowseForCoverArt()
+    private void SaveConfig()
     {
-        var files = await OpenPickerAsync("Select Cover Art (Tall)",
-            new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpeg", "*.jpg", "*.webp", "*.svg" } });
-        if (files?.Count >= 1) NewCoverArtPlaceHolder = files[0].Path.LocalPath;
+        try
+        {
+            var config = new LauncherConfig
+            {
+                Apps = _allApps,
+                BackgroundColor = (LauncherBackground as SolidColorBrush)?.Color.ToString() ?? "#1E1E2E",
+                SidebarColor = (SidebarBackground as SolidColorBrush)?.Color.ToString() ?? "#181825",
+                AccentColor = (AccentColor as SolidColorBrush)?.Color.ToString() ?? "#89B4FA",
+                UseCoverArtReview = UseCoverArtView
+            };
+            _dbService.SaveConfig(config);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error saving config: {ex.Message}");
+        }
     }
-    
+
+    // ─── JSON Migration ─────────────────────────────────────────────────────
+    private void MigrateFromJson()
+    {
+        try
+        {
+            string json = File.ReadAllText(_legacyConfigurationPath);
+
+            LauncherConfig? config = null;
+
+            // Handle old plain-array format
+            if (json.TrimStart().StartsWith("["))
+            {
+                var apps = JsonSerializer.Deserialize(json, AppJsonContext.Default.ListAppItem) ?? new List<AppItem>();
+                config = new LauncherConfig { Apps = apps };
+            }
+            else
+            {
+                config = JsonSerializer.Deserialize(json, AppJsonContext.Default.LauncherConfig) ?? new LauncherConfig();
+            }
+
+            if (config != null)
+            {
+                // Save theme colors
+                _dbService.SaveConfig(config);
+
+                // Save all apps
+                foreach (var app in config.Apps)
+                {
+                    app.Id = _dbService.AddApp(app);
+                }
+
+                Console.WriteLine($"✓ Successfully migrated {config.Apps.Count} apps from JSON to SQLite");
+
+                // Optional: backup the old JSON file
+                string backupPath = _legacyConfigurationPath + ".backup";
+                if (!File.Exists(backupPath))
+                {
+                    File.Copy(_legacyConfigurationPath, backupPath);
+                    Console.WriteLine($"✓ Backed up old JSON to {backupPath}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"✗ Migration error: {ex.Message}");
+        }
+    }
+
+    // ─── Image Management ───────────────────────────────────────────────────
     private string CopyImageToLocal(string sourcePath, string fallbackPlaceholder)
     {
         if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
@@ -515,12 +569,14 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
         try
         {
-            string imagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "Images");
+            string imagesDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "RonCafeApp", "Images");
             Directory.CreateDirectory(imagesDir);
 
             string originalName = Path.GetFileNameWithoutExtension(sourcePath);
             string extension = Path.GetExtension(sourcePath);
-            string uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8); // Unique hash
+            string uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
             string destinationPath = Path.Combine(imagesDir, $"{originalName}_{uniqueId}{extension}");
 
             File.Copy(sourcePath, destinationPath, true);
@@ -529,61 +585,38 @@ public class MainWindowViewModel : INotifyPropertyChanged
         catch (Exception ex)
         {
             Console.WriteLine($"Failed to copy image: {ex.Message}");
-            return sourcePath; // If it fails, fallback to using the original path
+            return sourcePath;
         }
     }
 
     private void DeleteLocalImage(string imagePath)
     {
         if (string.IsNullOrWhiteSpace(imagePath)) return;
-    
+
         try
         {
-            // SAFETY CHECK: Only delete the file if it's inside our dedicated Images folder!
-            // We don't want to accidentally delete a user's picture from their Downloads folder.
-            string imagesDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "Images");
-        
+            string imagesDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "RonCafeApp", "Images");
+
             if (imagePath.StartsWith(imagesDir) && File.Exists(imagePath))
             {
                 File.Delete(imagePath);
             }
         }
-        catch (Exception ex) { Console.WriteLine($"Could not delete image {imagePath}: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Could not delete image {imagePath}: {ex.Message}");
+        }
     }
 
-    private AppItem? _editingApp;
-    public string AddOrSaveButn => _editingApp == null ? "Add" : "Edit";
-    public bool isEditing => _editingApp != null;
-
-    public void EditApp(object? param)
+    private void FilterApps()
     {
-        if (param is not AppItem appItem) return;
-        _editingApp = appItem;
-
-        NewAppName = appItem.Name;
-        NewAppExecutionPath = appItem.getExecutionPATH;
-        NewIconPlaceHolder = appItem.IconPlaceholder;
-        NewCoverArtPlaceHolder = appItem.CoverArtPlaceholder;
-
-        SelectedCategory = appItem.Category;
-        
-        Notify(nameof(AddOrSaveButn));
-        Notify(nameof(isEditing));
+        DisplayedApps = new ObservableCollection<AppItem>(
+            _allApps.Where(a => a.Category == SelectedCategory));
+        Notify(nameof(IsAppListEmpty));
     }
 
-    public void CancelEditApp()
-    {
-        _editingApp = null;
-        NewAppName = string.Empty;
-        NewAppExecutionPath = string.Empty;
-        NewIconPlaceHolder = string.Empty;
-        NewCoverArtPlaceHolder = string.Empty;
-        Notify(nameof(AddOrSaveButn));
-        Notify(nameof(isEditing));
-    }
-
-    public void ExitLauncher()
-    {
-        System.Environment.Exit(0);
-    }
+    private void Notify(string name) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
