@@ -148,7 +148,7 @@
                             Background="{Binding LauncherBackground}"
                             IsVisible="{Binding CurrentPage,
                                 Converter={x:Static ObjectConverters.IsNotNull}}"/>
-            <TextBlock Text="Version 1.1.0"
+            <TextBlock Text="Version 1.2.0"
                        HorizontalAlignment="Right"
                        VerticalAlignment="Bottom"
                        Margin="0,0,10,10"
