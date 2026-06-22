@@ -12,7 +12,7 @@ _____
 * Add Game Cover Art
 
 ## Upcoming Features
-* Coin Timer for Business Edition
+* Coin Timer for Business Edition 
 
 ## NOTE:This is WIP while for personal usage it's okay but NOT FOR BUSINESS
 ### Framework used
