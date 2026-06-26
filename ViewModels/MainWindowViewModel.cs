@@ -174,6 +174,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     public string AddOrSaveButn => _editingApp == null ? "Add" : "Edit";
     public bool isEditing => _editingApp != null;
 
+
     // ─── Constructor ─────────────────────────────────────────────────────────
     public MainWindowViewModel()
     {
@@ -626,7 +627,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             if (desktop.MainWindow is MainWindow mainWindow)
             {
-                mainWindow.IsAdminExit = true;
+                mainWindow.IsAdminExit = false;
                 mainWindow.Close();
             }
         }
