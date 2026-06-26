@@ -460,10 +460,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
-    public void ExitLauncher()
-    {
-        Environment.Exit(0);
-    }
+    // public void ExitLauncher()
+    // {
+    //     Environment.Exit(0);
+    // }
 
     // ─── Persistence ────────────────────────────────────────────────────────
     private void LoadConfig()

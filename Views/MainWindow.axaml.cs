@@ -5,7 +5,7 @@ namespace RonCafeApp;
 
 public partial class MainWindow : Window
 {
-    public bool IsAdminExit { get; set; } = false;
+    public bool IsAdminExit { get; set; } = true;
     public MainWindow()
     {
         InitializeComponent();
