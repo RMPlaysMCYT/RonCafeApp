@@ -15,42 +15,42 @@
         Background="{Binding LauncherBackground}">
 
     <Window.DataContext>
-        <vm:MainWindowViewModel/>
+        <vm:MainWindowViewModel />
     </Window.DataContext>
     <Window.Resources>
-        <conv:StringToImageConverter x:Key="ImgConv"/>
+        <conv:StringToImageConverter x:Key="ImgConv" />
     </Window.Resources>
 
-    <Grid ColumnDefinitions="200, *">
+    <Grid ColumnDefinitions="200, *, 20">
 
         <!-- ── Sidebar ── -->
         <Border Grid.Column="0" Background="{Binding SidebarBackground}" Padding="10">
             <Grid RowDefinitions="Auto, Auto, *, Auto">
-                <Image Grid.Row="0" Stretch="Uniform" Width="160" Height="200" Source="avares://RonCafeApp/Assets/3_objectsicon.png"/>
+                <Image Grid.Row="0" Stretch="Uniform" Width="160" Height="200"
+                       Source="avares://RonCafeApp/Assets/3_objectsicon.png" />
                 <TextBlock Grid.Row="1" Text="{Binding CurrentTime}" Foreground="White" FontSize="24"
                            FontWeight="Bold"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Center"
-                           Padding="0 0 0  20"/>
+                           Padding="0 0 0  20" />
                 <ListBox Grid.Row="2"
                          Padding="0,20,0,0"
                          ItemsSource="{Binding Categories}"
                          SelectedItem="{Binding SelectedCategory}"
                          Background="Transparent"
                          FontSize="20"
-                         Foreground="White"/>
+                         Foreground="White" />
                 <Button Grid.Row="3"
                         Content="⚙ Settings"
                         Command="{Binding PromptSettingsPassword}"
                         Foreground="AntiqueWhite"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
-                        Margin="0,10,0,0"/>
+                        Margin="0,10,0,0" />
             </Grid>
         </Border>
 
         <Grid Grid.Column="1">
-
             <ScrollViewer Padding="5"
                           IsVisible="{Binding CurrentPage,
                               Converter={x:Static ObjectConverters.IsNull}}">
@@ -59,86 +59,86 @@
                                FontSize="40"
                                FontWeight="Bold"
                                HorizontalAlignment="Right"
-                               Foreground="White"/>
+                               Foreground="White" />
                     <TextBlock IsVisible="{Binding IsAppListEmpty}"
                                Text="No apps in this category yet. Open Settings to add some!"
                                VerticalAlignment="Center"
                                Foreground="#A6ADC8"
                                HorizontalAlignment="Center"
                                Margin="0,250,0,0"
-                               FontSize="14"/>
+                               FontSize="14" />
 
                     <ItemsControl ItemsSource="{Binding DisplayedApps}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
+                                <WrapPanel Orientation="Horizontal" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="models:AppItem">
-                            <Panel Margin="5" Width="180" Height="300" VerticalAlignment="Top">
-                                
-                                <Border Background="#313244" CornerRadius="0" Padding="5">
-                                    <Panel>
-                                        
-                                        <!-- ── VIEW 1: Square Icon + Name + Button ── -->
-                                        <StackPanel HorizontalAlignment="Center"
-                                                    VerticalAlignment="Center"
-                                                    Spacing="8"
-                                                    IsVisible="{Binding !$parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}">
-                                            
-                                            <Image Width="64" Height="64" 
-                                                   Source="{Binding IconPlaceholder, Converter={StaticResource ImgConv}}"
-                                                   HorizontalAlignment="Center"/>
-                                            <TextBlock Text="{Binding Name}"
-                                                       Foreground="White"
-                                                       TextAlignment="Center"
-                                                       TextWrapping="Wrap"
-                                                       MaxWidth="130"
-                                                       FontSize="12"/>
-                                            <Button Content="▶ Launch"
-                                                    Background="#A6E3A1"
-                                                    Foreground="#11111B"
-                                                    FontWeight="Bold"
-                                                    HorizontalAlignment="Stretch"
-                                                    HorizontalContentAlignment="Center"
-                                                    Padding="6,4"
-                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
-                                                    CommandParameter="{Binding}"/>
-                                        </StackPanel>
+                            <DataTemplate x:DataType="models:AppItem">
+                                <Panel Margin="5" Width="180" Height="300" VerticalAlignment="Top">
 
-                                        <!-- ── VIEW 2: Clickable Cover Art ── -->
-                                        <!-- We wrap the Image in a Button, make the Button transparent, and assign the Launch command directly to it! -->
-                                        <Button Background="Transparent" 
-                                                Padding="0" 
-                                                BorderThickness="0"
-                                                HorizontalAlignment="Center" 
-                                                VerticalAlignment="Center"
-                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
-                                                CommandParameter="{Binding}"
-                                                IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"
-                                                ToolTip.Tip="{Binding Name}">
-                                            
-                                            <!-- The image itself -->
-                                            <Image Width="200" Height="280" Stretch="UniformToFill"
-                                                   Source="{Binding CoverArtPlaceholder, Converter={StaticResource ImgConv}}"/>
-                                        </Button>
-                                        
-                                    </Panel>
-                                </Border>
-                                
-                                <!-- ── Lock Overlay (Stays the same!) ── -->
-                                <Border Background="#B3000000" CornerRadius="10" 
-                                        IsVisible="{Binding CategoryLocked}" 
-                                        IsHitTestVisible="False">
-                                    <TextBlock Text="🔒 LOCKED" 
-                                               Foreground="#F38BA8" 
-                                               FontWeight="Bold"
-                                               HorizontalAlignment="Center" 
-                                               VerticalAlignment="Center"/>
-                                </Border>
-                            </Panel>
-                        </DataTemplate>
+                                    <Border Background="#313244" CornerRadius="0" Padding="5">
+                                        <Panel>
+
+                                            <!-- ── VIEW 1: Square Icon + Name + Button ── -->
+                                            <StackPanel HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Spacing="8"
+                                                        IsVisible="{Binding !$parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}">
+
+                                                <Image Width="64" Height="64"
+                                                       Source="{Binding IconPlaceholder, Converter={StaticResource ImgConv}}"
+                                                       HorizontalAlignment="Center" />
+                                                <TextBlock Text="{Binding Name}"
+                                                           Foreground="White"
+                                                           TextAlignment="Center"
+                                                           TextWrapping="Wrap"
+                                                           MaxWidth="130"
+                                                           FontSize="12" />
+                                                <Button Content="▶ Launch"
+                                                        Background="#A6E3A1"
+                                                        Foreground="#11111B"
+                                                        FontWeight="Bold"
+                                                        HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Center"
+                                                        Padding="6,4"
+                                                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
+                                                        CommandParameter="{Binding}" />
+                                            </StackPanel>
+
+                                            <!-- ── VIEW 2: Clickable Cover Art ── -->
+                                            <!-- We wrap the Image in a Button, make the Button transparent, and assign the Launch command directly to it! -->
+                                            <Button Background="Transparent"
+                                                    Padding="0"
+                                                    BorderThickness="0"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
+                                                    CommandParameter="{Binding}"
+                                                    IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"
+                                                    ToolTip.Tip="{Binding Name}">
+
+                                                <!-- The image itself -->
+                                                <Image Width="200" Height="280" Stretch="UniformToFill"
+                                                       Source="{Binding CoverArtPlaceholder, Converter={StaticResource ImgConv}}" />
+                                            </Button>
+
+                                        </Panel>
+                                    </Border>
+
+                                    <!-- ── Lock Overlay (Stays the same!) ── -->
+                                    <Border Background="#B3000000" CornerRadius="10"
+                                            IsVisible="{Binding CategoryLocked}"
+                                            IsHitTestVisible="False">
+                                        <TextBlock Text="🔒 LOCKED"
+                                                   Foreground="#F38BA8"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" />
+                                    </Border>
+                                </Panel>
+                            </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
@@ -147,13 +147,22 @@
             <ContentControl Content="{Binding CurrentPage}"
                             Background="{Binding LauncherBackground}"
                             IsVisible="{Binding CurrentPage,
-                                Converter={x:Static ObjectConverters.IsNotNull}}"/>
-            <TextBlock Text="Version 1.2.0"
-                       HorizontalAlignment="Right"
-                       VerticalAlignment="Bottom"
-                       Margin="0,0,10,10"
-                       Foreground="#A6ADC8"
-                       />
+                                Converter={x:Static ObjectConverters.IsNotNull}}" />
+            <Grid>
+                <TextBlock Text="Version 1.2.0"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Bottom"
+                           Margin="0,0,10,10"
+                           Foreground="#A6ADC8" />
+                <Button Content="Minimize"
+                        Click="MinimizeWindow"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        Margin="0,0,110,5"
+                        Foreground="#A6ADC8" 
+                >
+                </Button>
+            </Grid>
         </Grid>
     </Grid>
 </Window>
