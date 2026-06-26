@@ -11,15 +11,15 @@
 
     <!-- ImgConv defined locally — no dependency on MainWindow resources -->
     <UserControl.Resources>
-        <conv:StringToImageConverter x:Key="ImgConv"/>
+        <conv:StringToImageConverter x:Key="ImgConv" />
     </UserControl.Resources>
 
     <Grid RowDefinitions="Auto, *" Margin="30">
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="Launcher Settings" FontSize="28" FontWeight="Bold"
-                       Foreground="{Binding AccentColor}"/>
+                       Foreground="{Binding AccentColor}" />
             <TextBlock Text="Configure your games, apps, and launcher appearance here."
-                       Foreground="#A6ADC8"/>
+                       Foreground="#A6ADC8" />
         </StackPanel>
 
         <ScrollViewer Grid.Row="1">
@@ -29,40 +29,40 @@
                 <Border Background="#181825" CornerRadius="12" Padding="20">
                     <StackPanel Spacing="15">
                         <TextBlock Text="Add New Application"
-                                   FontSize="18" FontWeight="SemiBold" Foreground="#A6E3A1"/>
+                                   FontSize="18" FontWeight="SemiBold" Foreground="#A6E3A1" />
 
                         <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto, Auto">
                             <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
                                      Text="{Binding NewAppName}"
                                      PlaceholderText="Display Name (e.g., Valorant)"
-                                     Margin="0,0,0,10"/>
+                                     Margin="0,0,0,10" />
 
                             <TextBox Grid.Row="1" Grid.Column="0"
                                      Text="{Binding NewAppExecutionPath}"
                                      PlaceholderText="Execution Path (.exe)"
-                                     IsReadOnly="True" Margin="0,0,10,10"/>
+                                     IsReadOnly="True" Margin="0,0,10,10" />
                             <Button Grid.Row="1" Grid.Column="1"
                                     Content="Browse Exe"
                                     Command="{Binding BrowseForExecutable}"
-                                    Margin="0,0,0,10" Background="#313244" Foreground="White"/>
+                                    Margin="0,0,0,10" Background="#313244" Foreground="White" />
 
                             <TextBox Grid.Row="2" Grid.Column="0"
                                      Text="{Binding NewIconPlaceHolder}"
                                      PlaceholderText="Icon Path (Image file)"
-                                     IsReadOnly="True" Margin="0,0,10,0"/>
+                                     IsReadOnly="True" Margin="0,0,10,0" />
                             <Button Grid.Row="2" Grid.Column="1"
                                     Content="Browse Icon"
                                     Command="{Binding BrowseForIcon}"
-                                    Background="#313244" Foreground="White"/>
+                                    Background="#313244" Foreground="White" />
                             <TextBox Grid.Row="3" Grid.Column="0"
                                      Text="{Binding NewCoverArtPlaceHolder}"
                                      PlaceholderText="Cover Art Path (Tall Image)"
-                                     IsReadOnly="True" Margin="0,10,10,0"/>
+                                     IsReadOnly="True" Margin="0,10,10,0" />
                             <Button Grid.Row="3" Grid.Column="1"
                                     Content="Browse Cover"
                                     Command="{Binding BrowseForCoverArt}"
                                     Background="#313244" Foreground="White"
-                                    Margin="0,10,0,0"/>
+                                    Margin="0,10,0,0" />
                         </Grid>
 
                         <Grid ColumnDefinitions="*, Auto">
@@ -75,8 +75,7 @@
                                     Foreground="Aqua"
                                     FontWeight="Bold"
                                     Padding="12"
-                                    Margin="0,0,10,0"
-                                    />
+                                    Margin="0,0,10,0" />
                             <Button Grid.Column="1"
                                     Content="Cancel Edit"
                                     Command="{Binding CancelEditApp}"
@@ -95,11 +94,11 @@
                 <Border Background="#181825" CornerRadius="12" Padding="20">
                     <StackPanel Spacing="10">
                         <TextBlock Text="Installed Apps Library"
-                                   FontSize="18" FontWeight="SemiBold" Foreground="#F9E2AF"/>
+                                   FontSize="18" FontWeight="SemiBold" Foreground="#F9E2AF" />
 
                         <TextBlock IsVisible="{Binding IsAppListEmpty}"
                                    Text="No apps in this category yet."
-                                   Foreground="#6C7086" FontStyle="Italic"/>
+                                   Foreground="#6C7086" FontStyle="Italic" />
 
                         <ItemsControl ItemsSource="{Binding DisplayedApps}">
                             <ItemsControl.ItemTemplate>
@@ -109,14 +108,14 @@
                                         <Grid ColumnDefinitions="50, *, Auto, Auto">
                                             <Image Grid.Column="0" Width="32" Height="32"
                                                    Source="{Binding IconPlaceholder,
-                                                       Converter={StaticResource ImgConv}}"/>
+                                                       Converter={StaticResource ImgConv}}" />
                                             <StackPanel Grid.Column="1"
                                                         VerticalAlignment="Center" Margin="10,0">
                                                 <TextBlock Text="{Binding Name}"
-                                                           Foreground="White" FontWeight="SemiBold"/>
+                                                           Foreground="White" FontWeight="SemiBold" />
                                                 <TextBlock Text="{Binding getExecutionPATH}"
                                                            Foreground="#6C7086" FontSize="11"
-                                                           TextTrimming="CharacterEllipsis"/>
+                                                           TextTrimming="CharacterEllipsis" />
                                             </StackPanel>
                                             <!-- $parent[UserControl] reaches SettingsView's DataContext -->
                                             <Button Grid.Column="2"
@@ -124,13 +123,13 @@
                                                     Foreground="#F38BA8"
                                                     Background="Transparent"
                                                     Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).RemoveApp}"
-                                                    CommandParameter="{Binding}"/>
+                                                    CommandParameter="{Binding}" />
                                             <Button Grid.Column="3"
                                                     Content="✏️ Edit"
                                                     Foreground="#F38BA8"
                                                     Background="Transparent"
                                                     Command="{Binding $parent[UserControl].((vm:MainWindowViewModel)DataContext).EditApp}"
-                                                    CommandParameter="{Binding}"/>
+                                                    CommandParameter="{Binding}" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -143,52 +142,59 @@
                 <Border Background="#181825" CornerRadius="12" Padding="20">
                     <StackPanel Spacing="12">
                         <TextBlock Text="Appearance"
-                                   FontSize="18" FontWeight="SemiBold" Foreground="#CBA6F7"/>
+                                   FontSize="18" FontWeight="SemiBold" Foreground="#CBA6F7" />
                         <TextBlock Text="Choose a preset theme. The selection is saved automatically."
-                                   Foreground="#A6ADC8" FontSize="12"/>
+                                   Foreground="#A6ADC8" FontSize="12" />
 
                         <WrapPanel Orientation="Horizontal">
                             <Button Content="🌙 Mocha (Default)"
                                     Command="{Binding SetTheme}" CommandParameter="Mocha"
                                     Background="#313244" Foreground="White"
-                                    Margin="0,0,8,8" Padding="12,8"/>
+                                    Margin="0,0,8,8" Padding="12,8" />
                             <Button Content="🌊 Ocean"
                                     Command="{Binding SetTheme}" CommandParameter="Ocean"
                                     Background="#0D3B52" Foreground="#64DFDF"
-                                    Margin="0,0,8,8" Padding="12,8"/>
+                                    Margin="0,0,8,8" Padding="12,8" />
                             <Button Content="🌿 Forest"
                                     Command="{Binding SetTheme}" CommandParameter="Forest"
                                     Background="#1A3620" Foreground="#A6E3A1"
-                                    Margin="0,0,8,8" Padding="12,8"/>
+                                    Margin="0,0,8,8" Padding="12,8" />
                             <Button Content="🌅 Sunset"
                                     Command="{Binding SetTheme}" CommandParameter="Sunset"
                                     Background="#3D2020" Foreground="#FAB387"
-                                    Margin="0,0,8,8" Padding="12,8"/>
+                                    Margin="0,0,8,8" Padding="12,8" />
                             <Button Content="🌌 Midnight"
                                     Command="{Binding SetTheme}" CommandParameter="Midnight"
                                     Background="#13103A" Foreground="#CBA6F7"
-                                    Margin="0,0,8,8" Padding="12,8"/>
+                                    Margin="0,0,8,8" Padding="12,8" />
                         </WrapPanel>
 
                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-                            <TextBlock Text="Background:" Foreground="#A6ADC8" VerticalAlignment="Center"/>
+                            <TextBlock Text="Background:" Foreground="#A6ADC8" VerticalAlignment="Center" />
                             <Border Width="60" Height="22" CornerRadius="4"
                                     Background="{Binding LauncherBackground}"
-                                    BorderBrush="#444" BorderThickness="1"/>
-                            <TextBlock Text="Sidebar:" Foreground="#A6ADC8" VerticalAlignment="Center"/>
+                                    BorderBrush="#444" BorderThickness="1" />
+                            <TextBlock Text="Sidebar:" Foreground="#A6ADC8" VerticalAlignment="Center" />
                             <Border Width="60" Height="22" CornerRadius="4"
                                     Background="{Binding SidebarBackground}"
-                                    BorderBrush="#444" BorderThickness="1"/>
-                            <TextBlock Text="Accent:" Foreground="#A6ADC8" VerticalAlignment="Center"/>
+                                    BorderBrush="#444" BorderThickness="1" />
+                            <TextBlock Text="Accent:" Foreground="#A6ADC8" VerticalAlignment="Center" />
                             <Border Width="60" Height="22" CornerRadius="4"
                                     Background="{Binding AccentColor}"
-                                    BorderBrush="#444" BorderThickness="1"/>
+                                    BorderBrush="#444" BorderThickness="1" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                            <Grid Grid.ColumnDefinitions="*, *, *" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="8">
+                                <TextBlock Grid.Column="0" Grid.Row="0" Text="WallPaper" VerticalAlignment="Center" Foreground="White"></TextBlock>
+                                <TextBox Grid.Row="0" Grid.Column="1" ></TextBox>
+                                <Button Grid.Row="0"  Grid.Column="2" Content="Use Wallpaper"></Button>
+                            </Grid>
                         </StackPanel>
                         <StackPanel>
-                            <TextBlock Text="App Display Style:" Foreground="White" VerticalAlignment="Center"/>
-                            <ToggleSwitch IsChecked="{Binding UseCoverArtView}" 
-                                          OnContent="Cover Art" 
-                                          OffContent="Square Icons"/>
+                            <TextBlock Text="App Display Style:" Foreground="White" VerticalAlignment="Center" />
+                            <ToggleSwitch IsChecked="{Binding UseCoverArtView}"
+                                          OnContent="Cover Art"
+                                          OffContent="Square Icons" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -200,26 +206,24 @@
                             Background="Transparent"
                             Foreground="{Binding AccentColor}"
                             HorizontalAlignment="Left"
-                            Margin="0,10,0,20"/>
+                            Margin="0,10,0,20" />
                     <Button Grid.Column="1" Content="Exit App"
                             Command="{Binding ExitApplicationLauncher}"
                             Background="Transparent"
                             Foreground="{Binding AccentColor}"
                             HorizontalAlignment="Left"
-                            Margin="0,10,0,20"/>
+                            Margin="0,10,0,20" />
                 </Grid>
                 <TextBlock Text="Copyright 2026 Ronnel Mitra, All Rights Reserved"
                            Foreground="White"
                            HorizontalAlignment="Left"
-                           VerticalAlignment="Bottom"
-                           />
-                
+                           VerticalAlignment="Bottom" />
+
                 <TextBlock Text="Icons By Icons8"
                            HorizontalAlignment="Left"
                            VerticalAlignment="Bottom"
                            Margin="0,20,10,10"
-                           Foreground="White"
-                />
+                           Foreground="White" />
             </StackPanel>
         </ScrollViewer>
     </Grid>
