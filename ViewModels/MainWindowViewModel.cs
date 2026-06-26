@@ -619,4 +619,16 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
     private void Notify(string name) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+    public void ExitApplication()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            if (desktop.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.IsAdminExit = true;
+                mainWindow.Close();
+            }
+        }
+    }
 }
