@@ -9,6 +9,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        this.Closing += MainWindow_Closing
+        this.Closing += MainWindow_Closing;
     }
+    
+    private void MinimizeButtonClick(object? sender,RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+    
+    
 }
