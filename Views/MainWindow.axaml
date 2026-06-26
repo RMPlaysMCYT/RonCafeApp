@@ -155,7 +155,7 @@
                            Margin="0,0,10,10"
                            Foreground="#A6ADC8" />
                 <Button Content="Minimize"
-                        Click="{Binding MinimizeWindow}"
+                        Click="MinimizeButtonClick"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Bottom"
                         Margin="0,0,110,5"
