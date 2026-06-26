@@ -16,6 +16,14 @@ public partial class MainWindow : Window
     {
         WindowState = WindowState.Minimized;
     }
-    
+
+    private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
+    {
+        if (!IsAdminExit)
+        {
+            e.Cancel = true;
+            WindowState = WindowState.Minimized;    
+        }
+    }
     
 }

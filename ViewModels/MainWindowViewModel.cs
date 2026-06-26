@@ -620,7 +620,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private void Notify(string name) =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    public void ExitApplication()
+    public void MinimizeWindow()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
