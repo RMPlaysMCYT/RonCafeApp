@@ -1,0 +1,32 @@
+using System;
+using System.IO;
+using Avalonia.Data.Converters;
+using Avalonia.Media.Imaging;
+
+namespace RonCafeApp.Converters
+{
+    public class StringToBitmapConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value is string path && !string.IsNullOrEmpty(path) && File.Exists(path))
+            {
+                try
+                {
+                    return new Bitmap(path);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to load bitmap: {ex.Message}");
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

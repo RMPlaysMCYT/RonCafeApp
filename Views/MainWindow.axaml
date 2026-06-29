@@ -18,6 +18,7 @@
     </Window.DataContext>
     <Window.Resources>
         <conv:StringToImageConverter x:Key="ImgConv" />
+        <conv:StringToBitmapConverter x:Key="BitmapConv" />
     </Window.Resources>
 
     <Grid>
@@ -28,7 +29,7 @@
                        IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNull}}" />
             
             <!-- Wallpaper (visible when wallpaper exists) -->
-            <Image Source="{Binding WallpaperBrush}"
+            <Image Source="{Binding WallpaperPath, Converter={StaticResource BitmapConv}}"
                    Stretch="UniformToFill"
                    Opacity="0.85"
                    IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNotNull}}" />
