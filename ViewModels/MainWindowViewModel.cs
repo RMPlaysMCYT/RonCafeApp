@@ -504,6 +504,10 @@ public class MainWindowViewModel : INotifyPropertyChanged
             {
                 WallpaperPath = localPath;
                 LoadWallpaper();
+                // Force UI update
+                ForceRefresh();
+                Notify(nameof(WallpaperBrush));
+                SaveConfig();
             }
         }
     }
@@ -513,21 +517,34 @@ public class MainWindowViewModel : INotifyPropertyChanged
         {
             try
             {
+                Console.WriteLine($"Loading wallpaper from: {WallpaperPath}");
+            
+                // Load the image
+                var bitmap = new Bitmap(WallpaperPath);
                 WallpaperBrush = new ImageBrush
                 {
-                    Source = new Bitmap(WallpaperPath),
+                    Source = bitmap,
                     Stretch = Stretch.UniformToFill
                 };
+            
+                Console.WriteLine("Wallpaper loaded successfully");
+            
+                // FORCE UI UPDATE - Important!
+                Notify(nameof(WallpaperBrush));
+                Notify(nameof(WallpaperPath));
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to load wallpaper: {ex.Message}");
                 WallpaperBrush = null;
+                Notify(nameof(WallpaperBrush));
             }
         }
         else
         {
+            Console.WriteLine($"Wallpaper path is null or file doesn't exist: {WallpaperPath}");
             WallpaperBrush = null;
+            Notify(nameof(WallpaperBrush));
         }
     }
     
@@ -535,14 +552,24 @@ public class MainWindowViewModel : INotifyPropertyChanged
     {
         if (!string.IsNullOrEmpty(WallpaperPath))
         {
-            // Delete the local wallpaper file if it's in our app folder
             DeleteLocalImage(WallpaperPath);
         }
         WallpaperPath = string.Empty;
         WallpaperBrush = null;
+        Notify(nameof(WallpaperBrush));
+        Notify(nameof(WallpaperPath));
         SaveConfig();
     }
     
+    
+    public void ForceRefresh()
+    {
+        Notify(nameof(WallpaperBrush));
+        Notify(nameof(WallpaperPath));
+        Notify(nameof(LauncherBackground));
+        Notify(nameof(SidebarBackground));
+        Notify(nameof(AccentColor));
+    }
     
     // public void ExitLauncher()
     // {
@@ -569,11 +596,16 @@ public class MainWindowViewModel : INotifyPropertyChanged
             LauncherBackground = SolidColorBrush.Parse(config.BackgroundColor);
             SidebarBackground = SolidColorBrush.Parse(config.SidebarColor);
             AccentColor = SolidColorBrush.Parse(config.AccentColor);
+            
             WallpaperPath = config.WallpaperPath ?? string.Empty;
             if (!string.IsNullOrEmpty(WallpaperPath) && File.Exists(WallpaperPath))
             {
                 LoadWallpaper();
-            };
+            }
+            else
+            {
+                WallpaperBrush = null;   
+            }
         }
         catch (Exception ex)
         {

@@ -94,7 +94,9 @@ public class DatabaseService
         connection.Open();
 
         var command = connection.CreateCommand();
-        command.CommandText = "SELECT BackgroundColor, SidebarColor, AccentColor, UseCoverArtView FROM LauncherConfig WHERE Id = 1";
+        // Make sure WallpaperPath is included in the SELECT
+        command.CommandText =
+            "SELECT BackgroundColor, SidebarColor, AccentColor, UseCoverArtView, WallpaperPath FROM LauncherConfig WHERE Id = 1";
 
         using var reader = command.ExecuteReader();
         if (reader.Read())
@@ -105,6 +107,7 @@ public class DatabaseService
                 SidebarColor = reader.GetString(1),
                 AccentColor = reader.GetString(2),
                 UseCoverArtReview = reader.GetInt32(3) == 1,
+                WallpaperPath = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
                 Apps = LoadApps()
             };
         }
@@ -122,18 +125,20 @@ public class DatabaseService
         {
             var command = connection.CreateCommand();
             command.CommandText = @"
-                UPDATE LauncherConfig 
-                SET BackgroundColor = @bgColor, 
-                    SidebarColor = @sidebarColor, 
-                    AccentColor = @accentColor,
-                    UseCoverArtView = @useCoverArt,
-                    LastModified = CURRENT_TIMESTAMP
-                WHERE Id = 1";
+            UPDATE LauncherConfig 
+            SET BackgroundColor = @bgColor, 
+                SidebarColor = @sidebarColor, 
+                AccentColor = @accentColor,
+                UseCoverArtView = @useCoverArt,
+                WallpaperPath = @wallpaperPath,
+                LastModified = CURRENT_TIMESTAMP
+            WHERE Id = 1";
 
             command.Parameters.AddWithValue("@bgColor", config.BackgroundColor ?? "#1E1E2E");
             command.Parameters.AddWithValue("@sidebarColor", config.SidebarColor ?? "#181825");
             command.Parameters.AddWithValue("@accentColor", config.AccentColor ?? "#89B4FA");
             command.Parameters.AddWithValue("@useCoverArt", config.UseCoverArtReview ? 1 : 0);
+            command.Parameters.AddWithValue("@wallpaperPath", config.WallpaperPath ?? string.Empty);
 
             command.ExecuteNonQuery();
             transaction.Commit();
@@ -374,24 +379,41 @@ public class DatabaseService
 
         return (int)(long)command.ExecuteScalar()!;
     }
-    
+
     private void AddWallpaperColumn()
     {
         try
         {
             using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
             connection.Open();
-        
-            var command = connection.CreateCommand();
-            command.CommandText = "ALTER TABLE LauncherConfig ADD COLUMN WallpaperPath TEXT";
-            command.ExecuteNonQuery();
-        
-            Console.WriteLine("Added WallpaperPath column to LauncherConfig table");
-        }
-        catch (SqliteException ex) when (ex.Message.Contains("duplicate column name"))
-        {
-            // Column already exists, that's fine
-            Console.WriteLine("WallpaperPath column already exists");
+
+            // Check if column exists first
+            var checkCommand = connection.CreateCommand();
+            checkCommand.CommandText = "PRAGMA table_info(LauncherConfig)";
+            using var reader = checkCommand.ExecuteReader();
+
+            bool hasWallpaperColumn = false;
+            while (reader.Read())
+            {
+                var columnName = reader.GetString(1);
+                if (columnName == "WallpaperPath")
+                {
+                    hasWallpaperColumn = true;
+                    break;
+                }
+            }
+
+            if (!hasWallpaperColumn)
+            {
+                var alterCommand = connection.CreateCommand();
+                alterCommand.CommandText = "ALTER TABLE LauncherConfig ADD COLUMN WallpaperPath TEXT";
+                alterCommand.ExecuteNonQuery();
+                Console.WriteLine("Added WallpaperPath column to LauncherConfig table");
+            }
+            else
+            {
+                Console.WriteLine("WallpaperPath column already exists");
+            }
         }
         catch (Exception ex)
         {

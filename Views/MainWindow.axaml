@@ -11,8 +11,7 @@
         x:DataType="vm:MainWindowViewModel"
         WindowDecorations="None"
         Title="Ron Cafe Launcher"
-        Icon="avares://RonCafeApp/Assets/Icon 256.png"
-        Background="{Binding LauncherBackground}">
+        Icon="avares://RonCafeApp/Assets/Icon 256.png">
 
     <Window.DataContext>
         <vm:MainWindowViewModel />
@@ -22,14 +21,27 @@
     </Window.Resources>
 
     <Grid>
-        <Image Source="{Binding WallpaperBrush}"
-               Stretch="UniformToFill"
-               Opacity="0.85"
-               IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNotNull}}" />
-        <Grid ColumnDefinitions="200, *, 20">
+        <!-- Background: Show wallpaper OR solid color -->
+        <Grid>
+            <!-- Solid color background (visible when NO wallpaper) -->
+            <Rectangle Fill="{Binding LauncherBackground}"
+                       IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNull}}" />
+            
+            <!-- Wallpaper (visible when wallpaper exists) -->
+            <Image Source="{Binding WallpaperBrush}"
+                   Stretch="UniformToFill"
+                   Opacity="0.85"
+                   IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </Grid>
+        
+        <!-- Content layer -->
+        <Grid ColumnDefinitions="200, *, 20" Background="Transparent">
 
             <!-- ── Sidebar ── -->
-            <Border Grid.Column="0" Background="{Binding SidebarBackground}" Padding="10">
+            <Border Grid.Column="0" 
+                    Background="{Binding SidebarBackground}" 
+                    Opacity="0.92"
+                    Padding="10">
                 <Grid RowDefinitions="Auto, Auto, *, Auto">
                     <Image Grid.Row="0" Stretch="Uniform" Width="160" Height="200"
                            Source="avares://RonCafeApp/Assets/3_objectsicon.png" />
@@ -55,7 +67,7 @@
                 </Grid>
             </Border>
 
-            <Grid Grid.Column="1">
+            <Grid Grid.Column="1" Background="Transparent">
                 <ScrollViewer Padding="5"
                               IsVisible="{Binding CurrentPage,
                               Converter={x:Static ObjectConverters.IsNull}}">
@@ -113,7 +125,6 @@
                                                 </StackPanel>
 
                                                 <!-- ── VIEW 2: Clickable Cover Art ── -->
-                                                <!-- We wrap the Image in a Button, make the Button transparent, and assign the Launch command directly to it! -->
                                                 <Button Background="Transparent"
                                                         Padding="0"
                                                         BorderThickness="0"
@@ -124,7 +135,6 @@
                                                         IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"
                                                         ToolTip.Tip="{Binding Name}">
 
-                                                    <!-- The image itself -->
                                                     <Image Width="200" Height="280" Stretch="UniformToFill"
                                                            Source="{Binding CoverArtPlaceholder, Converter={StaticResource ImgConv}}" />
                                                 </Button>
@@ -132,7 +142,7 @@
                                             </Panel>
                                         </Border>
 
-                                        <!-- ── Lock Overlay (Stays the same!) ── -->
+                                        <!-- ── Lock Overlay ── -->
                                         <Border Background="#B3000000" CornerRadius="10"
                                                 IsVisible="{Binding CategoryLocked}"
                                                 IsHitTestVisible="False">
@@ -170,5 +180,4 @@
             </Grid>
         </Grid>
     </Grid>
-
 </Window>
