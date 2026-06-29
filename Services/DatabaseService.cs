@@ -64,6 +64,7 @@ public class DatabaseService
         ";
 
         command.ExecuteNonQuery();
+        AddWallpaperColumn();
         connection.Close();
     }
 
@@ -372,5 +373,29 @@ public class DatabaseService
         }
 
         return (int)(long)command.ExecuteScalar()!;
+    }
+    
+    private void AddWallpaperColumn()
+    {
+        try
+        {
+            using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
+            connection.Open();
+        
+            var command = connection.CreateCommand();
+            command.CommandText = "ALTER TABLE LauncherConfig ADD COLUMN WallpaperPath TEXT";
+            command.ExecuteNonQuery();
+        
+            Console.WriteLine("Added WallpaperPath column to LauncherConfig table");
+        }
+        catch (SqliteException ex) when (ex.Message.Contains("duplicate column name"))
+        {
+            // Column already exists, that's fine
+            Console.WriteLine("WallpaperPath column already exists");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error adding wallpaper column: {ex.Message}");
+        }
     }
 }

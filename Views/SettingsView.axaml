@@ -139,65 +139,98 @@
                 </Border>
 
                 <!-- ── Appearance / Theme ── -->
-                <Border Background="#181825" CornerRadius="12" Padding="20">
-                    <StackPanel Spacing="12">
-                        <TextBlock Text="Appearance"
-                                   FontSize="18" FontWeight="SemiBold" Foreground="#CBA6F7" />
-                        <TextBlock Text="Choose a preset theme. The selection is saved automatically."
-                                   Foreground="#A6ADC8" FontSize="12" />
+<Border Background="#181825" CornerRadius="12" Padding="20">
+    <StackPanel Spacing="12">
+        <TextBlock Text="Appearance"
+                   FontSize="18" FontWeight="SemiBold" Foreground="#CBA6F7" />
+        <TextBlock Text="Choose a preset theme or set a custom wallpaper. The selection is saved automatically."
+                   Foreground="#A6ADC8" FontSize="12" />
 
-                        <WrapPanel Orientation="Horizontal">
-                            <Button Content="🌙 Mocha (Default)"
-                                    Command="{Binding SetTheme}" CommandParameter="Mocha"
-                                    Background="#313244" Foreground="White"
-                                    Margin="0,0,8,8" Padding="12,8" />
-                            <Button Content="🌊 Ocean"
-                                    Command="{Binding SetTheme}" CommandParameter="Ocean"
-                                    Background="#0D3B52" Foreground="#64DFDF"
-                                    Margin="0,0,8,8" Padding="12,8" />
-                            <Button Content="🌿 Forest"
-                                    Command="{Binding SetTheme}" CommandParameter="Forest"
-                                    Background="#1A3620" Foreground="#A6E3A1"
-                                    Margin="0,0,8,8" Padding="12,8" />
-                            <Button Content="🌅 Sunset"
-                                    Command="{Binding SetTheme}" CommandParameter="Sunset"
-                                    Background="#3D2020" Foreground="#FAB387"
-                                    Margin="0,0,8,8" Padding="12,8" />
-                            <Button Content="🌌 Midnight"
-                                    Command="{Binding SetTheme}" CommandParameter="Midnight"
-                                    Background="#13103A" Foreground="#CBA6F7"
-                                    Margin="0,0,8,8" Padding="12,8" />
-                        </WrapPanel>
+        <WrapPanel Orientation="Horizontal">
+            <Button Content="🌙 Mocha (Default)"
+                    Command="{Binding SetTheme}" CommandParameter="Mocha"
+                    Background="#313244" Foreground="White"
+                    Margin="0,0,8,8" Padding="12,8" />
+            <Button Content="🌊 Ocean"
+                    Command="{Binding SetTheme}" CommandParameter="Ocean"
+                    Background="#0D3B52" Foreground="#64DFDF"
+                    Margin="0,0,8,8" Padding="12,8" />
+            <Button Content="🌿 Forest"
+                    Command="{Binding SetTheme}" CommandParameter="Forest"
+                    Background="#1A3620" Foreground="#A6E3A1"
+                    Margin="0,0,8,8" Padding="12,8" />
+            <Button Content="🌅 Sunset"
+                    Command="{Binding SetTheme}" CommandParameter="Sunset"
+                    Background="#3D2020" Foreground="#FAB387"
+                    Margin="0,0,8,8" Padding="12,8" />
+            <Button Content="🌌 Midnight"
+                    Command="{Binding SetTheme}" CommandParameter="Midnight"
+                    Background="#13103A" Foreground="#CBA6F7"
+                    Margin="0,0,8,8" Padding="12,8" />
+        </WrapPanel>
 
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-                            <TextBlock Text="Background:" Foreground="#A6ADC8" VerticalAlignment="Center" />
-                            <Border Width="60" Height="22" CornerRadius="4"
-                                    Background="{Binding LauncherBackground}"
-                                    BorderBrush="#444" BorderThickness="1" />
-                            <TextBlock Text="Sidebar:" Foreground="#A6ADC8" VerticalAlignment="Center" />
-                            <Border Width="60" Height="22" CornerRadius="4"
-                                    Background="{Binding SidebarBackground}"
-                                    BorderBrush="#444" BorderThickness="1" />
-                            <TextBlock Text="Accent:" Foreground="#A6ADC8" VerticalAlignment="Center" />
-                            <Border Width="60" Height="22" CornerRadius="4"
-                                    Background="{Binding AccentColor}"
-                                    BorderBrush="#444" BorderThickness="1" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
-                            <Grid Grid.ColumnDefinitions="*, *, *" RowDefinitions="Auto, Auto, Auto" ColumnSpacing="8">
-                                <TextBlock Grid.Column="0" Grid.Row="0" Text="WallPaper" VerticalAlignment="Center" Foreground="White"></TextBlock>
-                                <TextBox Grid.Row="0" Grid.Column="1" ></TextBox>
-                                <Button Grid.Row="0"  Grid.Column="2" Content="Use Wallpaper"></Button>
-                            </Grid>
-                        </StackPanel>
-                        <StackPanel>
-                            <TextBlock Text="App Display Style:" Foreground="White" VerticalAlignment="Center" />
-                            <ToggleSwitch IsChecked="{Binding UseCoverArtView}"
-                                          OnContent="Cover Art"
-                                          OffContent="Square Icons" />
-                        </StackPanel>
-                    </StackPanel>
+        <!-- Wallpaper Settings -->
+        <Border Background="#1E1E2E" CornerRadius="8" Padding="12" Margin="0,4,0,0">
+            <StackPanel Spacing="8">
+                <TextBlock Text="Custom Wallpaper" FontWeight="SemiBold" Foreground="#A6E3A1" />
+                <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="8">
+                    <TextBox Grid.Column="0"
+                             Text="{Binding WallpaperPath}"
+                             PlaceholderText="Select a wallpaper image..."
+                             IsReadOnly="True"
+                             Background="#313244" />
+                    <Button Grid.Column="1"
+                            Content="Browse"
+                            Command="{Binding BrowseForWallpaper}"
+                            Background="#313244" Foreground="White"
+                            Padding="12,6" />
+                    <Button Grid.Column="2"
+                            Content="Clear"
+                            Command="{Binding ClearWallpaper}"
+                            Background="#313244" Foreground="#F38BA8"
+                            Padding="12,6" />
+                </Grid>
+                <TextBlock Text="Supported formats: PNG, JPG, JPEG, WEBP, BMP"
+                           Foreground="#6C7086" FontSize="11" />
+                
+                <!-- Wallpaper Preview -->
+                <Border CornerRadius="8" 
+                        Width="200" Height="100" 
+                        Background="{Binding WallpaperBrush, FallbackValue={Binding LauncherBackground}}"
+                        BorderBrush="#444" BorderThickness="1">
+                    <TextBlock Text="Wallpaper Preview"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding WallpaperPath, Converter={x:Static ObjectConverters.IsNull}}" />
                 </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- Color preview -->
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+            <TextBlock Text="Background:" Foreground="#A6ADC8" VerticalAlignment="Center" />
+            <Border Width="60" Height="22" CornerRadius="4"
+                    Background="{Binding LauncherBackground}"
+                    BorderBrush="#444" BorderThickness="1" />
+            <TextBlock Text="Sidebar:" Foreground="#A6ADC8" VerticalAlignment="Center" />
+            <Border Width="60" Height="22" CornerRadius="4"
+                    Background="{Binding SidebarBackground}"
+                    BorderBrush="#444" BorderThickness="1" />
+            <TextBlock Text="Accent:" Foreground="#A6ADC8" VerticalAlignment="Center" />
+            <Border Width="60" Height="22" CornerRadius="4"
+                    Background="{Binding AccentColor}"
+                    BorderBrush="#444" BorderThickness="1" />
+        </StackPanel>
+        
+        <StackPanel>
+            <TextBlock Text="App Display Style:" Foreground="White" VerticalAlignment="Center" />
+            <ToggleSwitch IsChecked="{Binding UseCoverArtView}"
+                          OnContent="Cover Art"
+                          OffContent="Square Icons" />
+        </StackPanel>
+    </StackPanel>
+</Border>
 
                 <!-- ── Back button ── -->
                 <Grid ColumnDefinitions="200, *">

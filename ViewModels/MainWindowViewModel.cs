@@ -12,6 +12,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 
@@ -28,6 +29,33 @@ public class MainWindowViewModel : INotifyPropertyChanged
     private readonly DatabaseService _dbService;
     private readonly ClockDisplay _clockDisplay;
 
+    
+    private string _wallpaperPath = string.Empty;
+    public string WallpaperPath
+    {
+        get => _wallpaperPath;
+        set 
+        { 
+            if (_wallpaperPath != value) 
+            { 
+                _wallpaperPath = value; 
+                Notify(nameof(WallpaperPath));
+                SaveConfig();
+            }
+        }
+    }
+    private IBrush? _wallpaperBrush;
+    public IBrush? WallpaperBrush
+    {
+        get => _wallpaperBrush;
+        set 
+        { 
+            _wallpaperBrush = value; 
+            Notify(nameof(WallpaperBrush));
+        }
+    }
+    
+    
     private AppItem? _pendingLockApp;
 
     private string _currentTime = DateTime.Now.ToString("HH:mm:ss");
@@ -461,6 +489,61 @@ public class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    
+    
+    
+    
+    public async void BrowseForWallpaper()
+    {
+        var files = await OpenPickerAsync("Select Wallpaper Image",
+            new FilePickerFileType("Images") { Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp" } });
+        if (files?.Count >= 1)
+        {
+            string localPath = CopyImageToLocal(files[0].Path.LocalPath, "");
+            if (!string.IsNullOrEmpty(localPath))
+            {
+                WallpaperPath = localPath;
+                LoadWallpaper();
+            }
+        }
+    }
+    private void LoadWallpaper()
+    {
+        if (!string.IsNullOrEmpty(WallpaperPath) && File.Exists(WallpaperPath))
+        {
+            try
+            {
+                WallpaperBrush = new ImageBrush
+                {
+                    Source = new Bitmap(WallpaperPath),
+                    Stretch = Stretch.UniformToFill
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to load wallpaper: {ex.Message}");
+                WallpaperBrush = null;
+            }
+        }
+        else
+        {
+            WallpaperBrush = null;
+        }
+    }
+    
+    public void ClearWallpaper()
+    {
+        if (!string.IsNullOrEmpty(WallpaperPath))
+        {
+            // Delete the local wallpaper file if it's in our app folder
+            DeleteLocalImage(WallpaperPath);
+        }
+        WallpaperPath = string.Empty;
+        WallpaperBrush = null;
+        SaveConfig();
+    }
+    
+    
     // public void ExitLauncher()
     // {
     //     Environment.Exit(0);
@@ -486,6 +569,11 @@ public class MainWindowViewModel : INotifyPropertyChanged
             LauncherBackground = SolidColorBrush.Parse(config.BackgroundColor);
             SidebarBackground = SolidColorBrush.Parse(config.SidebarColor);
             AccentColor = SolidColorBrush.Parse(config.AccentColor);
+            WallpaperPath = config.WallpaperPath ?? string.Empty;
+            if (!string.IsNullOrEmpty(WallpaperPath) && File.Exists(WallpaperPath))
+            {
+                LoadWallpaper();
+            };
         }
         catch (Exception ex)
         {
@@ -504,7 +592,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
                 BackgroundColor = (LauncherBackground as SolidColorBrush)?.Color.ToString() ?? "#1E1E2E",
                 SidebarColor = (SidebarBackground as SolidColorBrush)?.Color.ToString() ?? "#181825",
                 AccentColor = (AccentColor as SolidColorBrush)?.Color.ToString() ?? "#89B4FA",
-                UseCoverArtReview = UseCoverArtView
+                UseCoverArtReview = UseCoverArtView,
+                WallpaperPath = WallpaperPath
             };
             _dbService.SaveConfig(config);
         }
@@ -632,4 +721,5 @@ public class MainWindowViewModel : INotifyPropertyChanged
             }
         }
     }
+    
 }
