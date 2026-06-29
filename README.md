@@ -1,4 +1,4 @@
-# RonCafeApp Laucher
+# RonCafeApp Launcher
 
 <img src="/images/Screenshot (2368).png">
 
