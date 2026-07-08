@@ -36,7 +36,7 @@
         </Grid>
         
         <!-- Content layer -->
-        <Grid ColumnDefinitions="200, *, 20" Background="Transparent">
+        <Grid ColumnDefinitions="200, *" Background="Transparent">
 
             <!-- ── Sidebar ── -->
             <Border Grid.Column="0" 
