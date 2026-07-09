@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Ron Cafe Launcher"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.3.0"
 #define MyAppPublisher "BlueHeart Interactive Studios"
 #define MyAppExeName "RonCafeApp.exe"
 #define MyAppAssocName MyAppName + " File"
