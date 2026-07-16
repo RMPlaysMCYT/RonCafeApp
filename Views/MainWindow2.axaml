@@ -21,7 +21,7 @@
                 <Grid RowDefinitions="* 680">
                         <Border Grid.Row="0"
                                 Padding="20">
-                                <AutoCompleteBox Width="300" Padding="0 0 0 0"></AutoCompleteBox>
+                                <AutoCompleteBox Width="500" Padding="0 0 0 0"></AutoCompleteBox>
                         </Border>
                         <Grid Grid.Row="1" HorizontalAlignment="Center">
                                 <TabControl Margin="5">
