@@ -178,6 +178,13 @@
                             Margin="0,0,110,5"
                             Foreground="#A6ADC8">
                     </Button>
+                   <Button Content="Close"
+                            Click="CloseButtonClick"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Bottom"
+                            Margin="0,0,110,5"
+                            Foreground="#A6ADC8">
+                    </Button>
                 </Grid>
             </Grid>
         </Grid>

@@ -504,7 +504,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
             {
                 WallpaperPath = localPath;
                 LoadWallpaper();
-                // Force UI update
                 ForceRefresh();
                 Notify(nameof(WallpaperBrush));
                 SaveConfig();
