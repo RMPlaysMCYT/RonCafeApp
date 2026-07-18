@@ -1,0 +1,34 @@
+name: 3-2-1 Multi-Platform Sync
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitHub repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Backup Platforms
+        run: |
+          REPO_NAME=${GITHUB_REPOSITORY#*/}
+          
+          GITLAB_URL="https://RMPlaysMCYT:${{ secrets.GITLAB_PAT }}@gitlab.com/RMPlaysMCYT/$REPO_NAME.git"
+          git remote add gitlab "$GITLAB_URL"
+          git push gitlab --all --force
+          git push gitlab --tags --force
+          
+          CODEBERG_URL="https://RMPlaysMCYT:${{ secrets.CODEBERG_PAT }}@codeberg.org/RMPlaysMCYT/$REPO_NAME.git"
+          git remote add codeberg "$CODEBERG_URL"
+          git push codeberg --all --force
+          git push codeberg --tags --force
+
+          GITEA_URL="https://RMPlaysMCYT:${{ secrets.GITEA_PAT }}@gitea.com/RMPlaysMCYT/$REPO_NAME.git"
+          git remote add gitea "$GITEA_URL"
+          git push gitea --all --force
+          git push gitea --tags --force

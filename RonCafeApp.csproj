@@ -37,4 +37,8 @@
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include=".github\workflows\cross-sync.yaml" />
+  </ItemGroup>
 </Project>
