@@ -18,12 +18,21 @@
                 <!--                Opacity="0.85" -->
                 <!--                IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNotNull}}" /> -->
                 <!-- </Grid> -->
-                <Grid RowDefinitions="* 730">
+                <Grid RowDefinitions="80 * 730">
                         <Border Grid.Row="0"
+                                Padding="20">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <!-- Using built-in part names for automatic window handling -->
+                                        <Button Name="PART_MinimizeButton" Content="—" />
+                                        <Button Name="PART_MaximizeButton" Content="[ ]" />
+                                        <Button Name="PART_CloseButton" Content="X" Background="Red" />
+                                </StackPanel>
+                        </Border>
+                        <Border Grid.Row="1"
                                 Padding="20">
                                 <AutoCompleteBox Width="500" Padding="0 0 0 0"></AutoCompleteBox>
                         </Border>
-                        <Grid Grid.Row="1" HorizontalAlignment="Center">
+                        <Grid Grid.Row="2" HorizontalAlignment="Center">
                                 <TabControl Margin="5">
                                         <TabItem Header="Tab 1">
                                                 <TextBlock Margin="5">This is tab 1 content</TextBlock>
