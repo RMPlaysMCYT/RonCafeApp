@@ -21,7 +21,9 @@
                 <Grid RowDefinitions="80 * 730">
                         <Border Grid.Row="0"
                                 Padding="20">
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <StackPanel 
+Orientation="Horizontal" 
+HorizontalAlignment="Right">
                                         <!-- Using built-in part names for automatic window handling -->
                                         <Button Name="PART_MinimizeButton" Content="—" />
                                         <Button Name="PART_MaximizeButton" Content="[ ]" />
@@ -30,7 +32,10 @@
                         </Border>
                         <Border Grid.Row="1"
                                 Padding="20">
-                                <AutoCompleteBox Width="500" Padding="0 0 0 0"></AutoCompleteBox>
+                                <AutoCompleteBox 
+Width="500" 
+Padding="0 0 0 0"
+></AutoCompleteBox>
                         </Border>
                         <Grid Grid.Row="2" HorizontalAlignment="Center">
                                 <TabControl Margin="5">
