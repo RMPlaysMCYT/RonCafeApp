@@ -2,22 +2,35 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="1080"
+        mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+        xmlns:vm="using:RonCafeApp.ViewModels"
+        xmlns:models="using:RonCafeApp.Models"
+        xmlns:conv="clr-namespace:RonCafeApp.Converters"
         x:Class="RonCafeApp.Views.MainWindow2"
-        Title="RonCafeLauncherLayout2">
+        x:DataType="vm:MainWindowViewModel">
+        
+        <Window.DataContext>
+                <vm:MainWindowViewModel />
+        </Window.DataContext>
+        <Window.Resources>
+                <conv:StringToImageConverter x:Key="ImgConv" />
+                <conv:StringToBitmapConverter x:Key="BitmapConv" />
+        </Window.Resources>
+        
+        
         <Grid>
-                <!-- ~1~ Background: Show wallpaper OR solid color @1@ -->
-                <!-- <Grid> -->
-                <!--         ~1~ Solid color background (visible when NO wallpaper) @1@ -->
-                <!--         <Rectangle Fill="{Binding LauncherBackground}" -->
-                <!--                    IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNull}}" /> -->
-                <!-- -->
-                <!--         ~1~ Wallpaper (visible when wallpaper exists) @1@ -->
-                <!--         <Image Source="{Binding WallpaperPath, Converter={StaticResource BitmapConv}}" -->
-                <!--                Stretch="UniformToFill" -->
-                <!--                Opacity="0.85" -->
-                <!--                IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNotNull}}" /> -->
-                <!-- </Grid> -->
+                <!-- Background: Show wallpaper OR solid color -->
+                <Grid>
+                        <!-- Solid color background (visible when NO wallpaper) -->
+                        <Rectangle Fill="{Binding LauncherBackground}"
+                                   IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNull}}" />
+                
+                        <!-- Wallpaper (visible when wallpaper exists) -->
+                        <Image Source="{Binding WallpaperPath, Converter={StaticResource BitmapConv}}"
+                               Stretch="UniformToFill"
+                               Opacity="0.85"
+                               IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNotNull}}" />
+                </Grid>
                 <Grid RowDefinitions="80 * 730">
                         <Border Grid.Row="0"
                                 Padding="20">
@@ -38,13 +51,20 @@ Padding="0 0 0 0"
 ></AutoCompleteBox>
                         </Border>
                         <Grid Grid.Row="2" HorizontalAlignment="Center">
-                                <TabControl Margin="5">
-                                        <TabItem Header="Tab 1">
-                                                <TextBlock Margin="5">This is tab 1 content</TextBlock>
-                                        </TabItem>
-                                        <TabItem Header="Tab 2">
-                                                <TextBlock Margin="5">This is tab 2 content</TextBlock>
-                                        </TabItem>
+                                <TabControl Margin="5"
+                                            ItemsSource="{Binding Categories}"
+                                            SelectedItem="{Binding SelectedCategory}">
+                                        <TabControl.ItemTemplate>
+                                                <DataTemplate>
+                                                        <TextBlock Text="{Binding}" />
+                                                </DataTemplate>
+                                        </TabControl.ItemTemplate>
+                                        <TabControl.ContentTemplate>
+                                                <DataTemplate>
+                                                        <TextBlock HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center" Margin="5" Text="Your tab content here..." />
+                                                </DataTemplate>
+                                        </TabControl.ContentTemplate>
                                 </TabControl>
                         </Grid>
                 </Grid>
