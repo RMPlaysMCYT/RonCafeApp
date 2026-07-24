@@ -47,11 +47,15 @@ HorizontalAlignment="Right">
                                 Padding="20">
                                 <AutoCompleteBox 
 Width="500" 
+Height="60"
+PlaceholderText="Search"
+PlaceholderForeground="Black"
 Padding="0 0 0 0"
 ></AutoCompleteBox>
                         </Border>
                         <Grid Grid.Row="2" HorizontalAlignment="Center">
                                 <TabControl Margin="5"
+                                            FontWeight="Bold"
                                             ItemsSource="{Binding Categories}"
                                             SelectedItem="{Binding SelectedCategory}">
                                         <TabControl.ItemTemplate>
