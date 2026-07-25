@@ -139,9 +139,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
         set { if (_adminPassword != value) { _adminPassword = value; Notify(nameof(AdminPasswordInput)); } }
     }
 
-    private bool _isTryToOpenSettings = false;
-    private string _savedAdminPassword = "abcadmin123";
-
     private bool _useCoverArtView;
     public bool UseCoverArtView
     {
@@ -222,7 +219,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
         if (app.CategoryLocked)
         {
             _pendingLockApp = app;
-            PasswordScreen();
             return;
         }
 
@@ -277,53 +273,8 @@ public class MainWindowViewModel : INotifyPropertyChanged
     // REMOVED: BrowseForCoverArt()
 
     // ─── Navigation ──────────────────────────────────────────────────────────
-    public void ShowSettings() => CurrentPage = new RonCafeApp.Views.SettingsView { DataContext = this };
-    public void PasswordScreen() => CurrentPage = new RonCafeApp.Views.PasswordScreen { DataContext = this };
     public void CloseSettings() => CurrentPage = null;
 
-    // ─── Password Management ─────────────────────────────────────────────────
-    public void PromptSettingsPassword()
-    {
-        _isTryToOpenSettings = true;
-        AdminPasswordInput = string.Empty;
-        CurrentPage = new RonCafeApp.Views.PasswordScreen { DataContext = this };
-    }
-
-    public void CancelPasswordCommand()
-    {
-        _isTryToOpenSettings = false;
-        _pendingLockApp = null;
-        AdminPasswordInput = string.Empty;
-        CloseSettings();
-    }
-
-    public void SubmitPasswordCommand()
-    {
-        if (AdminPasswordInput == _savedAdminPassword)
-        {
-            if (_isTryToOpenSettings)
-            {
-                _isTryToOpenSettings = false;
-                ShowSettings();
-            }
-            else if (_pendingLockApp != null)
-            {
-                ExecuteGameLaunch(_pendingLockApp);
-                _pendingLockApp = null;
-                CloseSettings();
-            }
-        }
-        else
-        {
-            AdminPasswordInput = string.Empty;
-        }
-    }
-
-    // ─── REMOVED: Wallpaper Management (Client is read-only) ────────────────
-    // REMOVED: BrowseForWallpaper()
-    // REMOVED: ClearWallpaper()
-    // REMOVED: CopyImageToLocal()
-    // REMOVED: DeleteLocalImage()
 
     // ─── Persistence (Read-Only) ────────────────────────────────────────────
     private void LoadConfig()
