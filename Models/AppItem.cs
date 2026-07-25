@@ -80,6 +80,11 @@ public class AppItem : INotifyPropertyChanged
             }
         }
     }
+    
+    // Add these missing properties
+    public DateTime? LastModified { get; set; }
+    public DateTime? CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     private bool _categoryLocked;
 
