@@ -8,69 +8,128 @@
         xmlns:conv="clr-namespace:RonCafeApp.Converters"
         x:Class="RonCafeApp.Views.MainWindow2"
         x:DataType="vm:MainWindowViewModel">
-        
-        <Window.DataContext>
-                <vm:MainWindowViewModel />
-        </Window.DataContext>
-        <Window.Resources>
-                <conv:StringToImageConverter x:Key="ImgConv" />
-                <conv:StringToBitmapConverter x:Key="BitmapConv" />
-        </Window.Resources>
-        
-        
+
+    <Window.DataContext>
+        <vm:MainWindowViewModel />
+    </Window.DataContext>
+    <Window.Resources>
+        <conv:StringToImageConverter x:Key="ImgConv" />
+        <conv:StringToBitmapConverter x:Key="BitmapConv" />
+    </Window.Resources>
+
+
+    <Grid>
+        <!-- Background: Show wallpaper OR solid color -->
         <Grid>
-                <!-- Background: Show wallpaper OR solid color -->
-                <Grid>
-                        <!-- Solid color background (visible when NO wallpaper) -->
-                        <Rectangle Fill="{Binding LauncherBackground}"
-                                   IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNull}}" />
-                
-                        <!-- Wallpaper (visible when wallpaper exists) -->
-                        <Image Source="{Binding WallpaperPath, Converter={StaticResource BitmapConv}}"
-                               Stretch="UniformToFill"
-                               Opacity="0.85"
-                               IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNotNull}}" />
-                </Grid>
-                <Grid RowDefinitions="80 * 730">
-                        <Border Grid.Row="0"
-                                Padding="20">
-                                <StackPanel 
-Orientation="Horizontal" 
-HorizontalAlignment="Right">
-                                        <!-- Using built-in part names for automatic window handling -->
-                                        <Button Name="PART_MinimizeButton" Content="—" />
-                                        <Button Name="PART_MaximizeButton" Content="[ ]" />
-                                        <Button Name="PART_CloseButton" Content="X" Background="Red" />
-                                </StackPanel>
-                        </Border>
-                        <Border Grid.Row="1"
-                                Padding="20">
-                                <AutoCompleteBox 
-Width="500" 
-Height="60"
-PlaceholderText="Search"
-PlaceholderForeground="Black"
-Padding="0 0 0 0"
-></AutoCompleteBox>
-                        </Border>
-                        <Grid Grid.Row="2" HorizontalAlignment="Center">
-                                <TabControl Margin="5"
-                                            FontWeight="Bold"
-                                            ItemsSource="{Binding Categories}"
-                                            SelectedItem="{Binding SelectedCategory}">
-                                        <TabControl.ItemTemplate>
-                                                <DataTemplate>
-                                                        <TextBlock Text="{Binding}" />
-                                                </DataTemplate>
-                                        </TabControl.ItemTemplate>
-                                        <TabControl.ContentTemplate>
-                                                <DataTemplate>
-                                                        <TextBlock HorizontalAlignment="Center"
-                                                                   VerticalAlignment="Center" Margin="5" Text="Your tab content here..." />
-                                                </DataTemplate>
-                                        </TabControl.ContentTemplate>
-                                </TabControl>
-                        </Grid>
-                </Grid>
+            <!-- Solid color background (visible when NO wallpaper) -->
+            <Rectangle Fill="{Binding LauncherBackground}"
+                       IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNull}}" />
+
+            <!-- Wallpaper (visible when wallpaper exists) -->
+            <Image Source="{Binding WallpaperPath, Converter={StaticResource BitmapConv}}"
+                   Stretch="UniformToFill"
+                   Opacity="0.85"
+                   IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNotNull}}" />
         </Grid>
+        <Grid RowDefinitions="80 * 830">
+            <Border Grid.Row="0"
+                    Padding="20">
+                <StackPanel
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+                    <!-- Using built-in part names for automatic window handling -->
+                    <Button Name="PART_MinimizeButton" Content="—" />
+                    <Button Name="PART_MaximizeButton" Content="[ ]" />
+                    <Button Name="PART_CloseButton" Content="X" Background="Red" />
+                </StackPanel>
+            </Border>
+            <Border Grid.Row="1"
+                    Padding="20">
+                <AutoCompleteBox
+                    Width="500"
+                    Height="60"
+                    PlaceholderText="Search"
+                    PlaceholderForeground="Black"
+                    Padding="0 0 0 0">
+                </AutoCompleteBox>
+            </Border>
+            <Grid Grid.Row="2" HorizontalAlignment="Center">
+                <TabControl
+                    HorizontalAlignment="Center"
+                    ItemsSource="{Binding Categories}"
+                    SelectedItem="{Binding SelectedCategory}" />
+                <ItemsControl ItemsSource="{Binding DisplayedApps}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" Height="730" Width="1280" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:AppItem">
+                            <Panel Width="180" Height="300" VerticalAlignment="Top">
+
+                                <Border Background="#313244" CornerRadius="0" Padding="5">
+                                    <Panel>
+
+                                        <!-- ── VIEW 1: Square Icon + Name + Button ── -->
+                                        <StackPanel HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Spacing="8"
+                                                    IsVisible="{Binding !$parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}">
+
+                                            <Image Width="64" Height="64"
+                                                   Source="{Binding IconPlaceholder, Converter={StaticResource ImgConv}}"
+                                                   HorizontalAlignment="Center" />
+                                            <TextBlock Text="{Binding Name}"
+                                                       Foreground="White"
+                                                       TextAlignment="Center"
+                                                       TextWrapping="Wrap"
+                                                       MaxWidth="130"
+                                                       FontSize="12" />
+                                            <Button Content="▶ Launch"
+                                                    Background="#A6E3A1"
+                                                    Foreground="#11111B"
+                                                    FontWeight="Bold"
+                                                    HorizontalAlignment="Stretch"
+                                                    HorizontalContentAlignment="Center"
+                                                    Padding="6,4"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+
+                                        <!-- ── VIEW 2: Clickable Cover Art ── -->
+                                        <Button Background="Transparent"
+                                                Padding="0"
+                                                BorderThickness="0"
+                                                HorizontalAlignment="Center"
+                                                VerticalAlignment="Center"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).LaunchApp}"
+                                                CommandParameter="{Binding}"
+                                                IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).UseCoverArtView}"
+                                                ToolTip.Tip="{Binding Name}">
+
+                                            <Image Width="200" Height="280" Stretch="UniformToFill"
+                                                   Source="{Binding CoverArtPlaceholder, Converter={StaticResource ImgConv}}" />
+                                        </Button>
+
+                                    </Panel>
+                                </Border>
+
+                                <!-- ── Lock Overlay ── -->
+                                <Border Background="#B3000000" CornerRadius="10"
+                                        IsVisible="{Binding CategoryLocked}"
+                                        IsHitTestVisible="False">
+                                    <TextBlock Text="🔒 LOCKED"
+                                               Foreground="#F38BA8"
+                                               FontWeight="Bold"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Border>
+                            </Panel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Grid>
+    </Grid>
 </Window>
