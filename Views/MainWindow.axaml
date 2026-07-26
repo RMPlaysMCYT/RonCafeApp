@@ -58,13 +58,13 @@
                              Background="Transparent"
                              FontSize="20"
                              Foreground="White" />
-                    <!-- <Button Grid.Row="3" -->
-                    <!--         Content="⚙ Settings" -->
-                    <!--         Command="{Binding PromptSettingsPassword}" -->
-                    <!--         Foreground="AntiqueWhite" -->
-                    <!--         HorizontalAlignment="Stretch" -->
-                    <!--         HorizontalContentAlignment="Center" -->
-                    <!--         Margin="0,10,0,0" /> -->
+                    <Button Grid.Row="3"
+                            Content="⚙ Reload"
+                            Command="{Binding LoadConfig}"
+                            Foreground="AntiqueWhite"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Margin="0,10,0,0" />
                 </Grid>
             </Border>
 
