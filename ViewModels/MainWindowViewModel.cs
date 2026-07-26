@@ -277,7 +277,7 @@ public class MainWindowViewModel : INotifyPropertyChanged
 
 
     // ─── Persistence (Read-Only) ────────────────────────────────────────────
-    private void LoadConfig()
+    public void LoadConfig()
     {
         try
         {
