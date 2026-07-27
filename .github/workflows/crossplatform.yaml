@@ -1,0 +1,301 @@
+name: Build Avalonia Cross Platform
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            runtime: win-x64
+            package: zip
+            installer: true
+
+          - os: ubuntu-latest
+            runtime: linux-x64
+            package: deb
+            installer: true
+
+          - os: macos-latest
+            runtime: osx-x64
+            package: dmg
+            installer: true
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Publish
+        run: |
+          dotnet publish RonCafeApp.csproj \
+          -c Release \
+          -r ${{ matrix.runtime }} \
+          --self-contained true \
+          -o publish
+
+      # ============ WINDOWS INSTALLER ============
+      - name: Build Windows Installer
+        if: runner.os == 'Windows'
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: installer.iss
+          options: /O+ /C=zlib
+
+      - name: Rename Windows Installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Rename-Item -Path "*.exe" -NewName "RonCafeLauncher-${{ matrix.runtime }}.exe"
+
+      # ============ LINUX PACKAGES ============
+      - name: Install Linux Packaging Tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm python3-pip
+          gem install fpm
+          pip3 install appimage-builder
+
+      - name: Build Linux .deb Package
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p package/usr/local/bin
+          cp -r publish/* package/usr/local/bin/
+          chmod +x package/usr/local/bin/RonCafeApp
+          
+          fpm -s dir -t deb \
+            -n roncafe-launcher \
+            -v ${GITHUB_REF_NAME#v} \
+            --description "RonCafe Launcher - Cross-platform application" \
+            --maintainer "Ronnel Mitra" \
+            --url "https://github.com/RMPlaysMCYT/RonCafeApp" \
+            --license "MIT" \
+            --depends libc6 \
+            --depends libgcc1 \
+            --depends libgssapi-krb5-2 \
+            --depends libssl1.1 \
+            -p RonCafeLauncher-linux-x64.deb \
+            -C package .
+
+      - name: Build Linux .rpm Package
+        if: runner.os == 'Linux'
+        run: |
+          fpm -s dir -t rpm \
+            -n roncafe-launcher \
+            -v ${GITHUB_REF_NAME#v} \
+            --description "RonCafe Launcher - Cross-platform application" \
+            --maintainer "Ronnel Mitra" \
+            --url "https://github.com/RMPlaysMCYT/RonCafeApp" \
+            --license "MIT" \
+            --depends libc6 \
+            --depends libgcc1 \
+            -p RonCafeLauncher-linux-x64.rpm \
+            -C package .
+
+      - name: Build Linux AppImage
+        if: runner.os == 'Linux'
+        run: |
+          # Create AppDir structure
+          mkdir -p AppDir/usr/bin
+          cp -r publish/* AppDir/usr/bin/
+          cp -r Assets AppDir/usr/share/icons/
+          
+          # Create desktop file
+          cat > AppDir/roncafe-launcher.desktop << EOF
+          [Desktop Entry]
+          Name=RonCafe Launcher
+          Comment=Cross-platform application launcher
+          Exec=RonCafeApp
+          Icon=roncafe
+          Terminal=false
+          Type=Application
+          Categories=Utility;
+          EOF
+          
+          # Download appimagetool
+          wget -c "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool-x86_64.AppImage
+          
+          # Build AppImage
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir RonCafeLauncher-linux-x64.AppImage
+
+      # ============ MACOS DMG ============
+      - name: Create macOS .app Bundle
+        if: runner.os == 'macOS'
+        run: |
+          # Create app bundle structure
+          mkdir -p RonCafeApp.app/Contents/MacOS
+          mkdir -p RonCafeApp.app/Contents/Resources
+          
+          # Copy binary and resources
+          cp -r publish/* RonCafeApp.app/Contents/MacOS/
+          cp -r Assets/* RonCafeApp.app/Contents/Resources/ || true
+          
+          # Create Info.plist
+          cat > RonCafeApp.app/Contents/Info.plist << EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key>
+            <string>RonCafe Launcher</string>
+            <key>CFBundleDisplayName</key>
+            <string>RonCafe Launcher</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.roncafe.launcher</string>
+            <key>CFBundleVersion</key>
+            <string>${GITHUB_REF_NAME#v}</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleExecutable</key>
+            <string>RonCafeApp</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+          </dict>
+          </plist>
+          EOF
+          
+          # Make executable
+          chmod +x RonCafeApp.app/Contents/MacOS/RonCafeApp
+
+      - name: Build macOS DMG
+        if: runner.os == 'macOS'
+        run: |
+          # Install create-dmg
+          brew install create-dmg
+          
+          # Create DMG
+          create-dmg \
+            --volname "RonCafe Launcher" \
+            --volicon "Assets/icon.icns" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "RonCafeApp.app" 175 120 \
+            --hide-extension "RonCafeApp.app" \
+            --app-drop-link 425 120 \
+            "RonCafeLauncher-osx-x64.dmg" \
+            "RonCafeApp.app"
+
+      # ============ UPLOAD ARTIFACTS ============
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.runtime }}
+          path: |
+            *.zip
+            *.tar.gz
+            *.deb
+            *.rpm
+            *.AppImage
+            *.dmg
+            *.exe
+
+  # ============ MACOS SIGNING (Optional) ============
+  sign-macos:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/') && runner.os == 'macOS' && secrets.MACOS_CERTIFICATE != ''
+    runs-on: macos-latest
+    
+    steps:
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: osx-x64
+          path: artifacts
+
+      - name: Import Certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.MACOS_CERTIFICATE }}
+          p12-password: ${{ secrets.MACOS_CERT_PASSWORD }}
+
+      - name: Sign DMG
+        run: |
+          codesign --force --sign "${{ secrets.MACOS_SIGNING_IDENTITY }}" artifacts/*.dmg
+
+      - name: Re-upload Signed DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: osx-x64-signed
+          path: artifacts/*.dmg
+
+  release:
+    needs: [build, sign-macos]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display All Artifacts
+        run: |
+          find artifacts -type f
+          ls -la artifacts/*/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            artifacts/**/*.zip
+            artifacts/**/*.tar.gz
+            artifacts/**/*.deb
+            artifacts/**/*.rpm
+            artifacts/**/*.AppImage
+            artifacts/**/*.dmg
+            artifacts/**/*.exe
+
+  # ============ UPDATER ============
+  update-latest:
+    needs: release
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Latest Release Artifacts
+        run: |
+          mkdir latest
+          # Copy files and rename to latest
+          find artifacts -name "*.exe" -exec cp {} latest/RonCafeLauncher-Windows-latest.exe \;
+          find artifacts -name "*.deb" -exec cp {} latest/RonCafeLauncher-Linux-latest.deb \;
+          find artifacts -name "*.rpm" -exec cp {} latest/RonCafeLauncher-Linux-latest.rpm \;
+          find artifacts -name "*.AppImage" -exec cp {} latest/RonCafeLauncher-Linux-latest.AppImage \;
+          find artifacts -name "*.dmg" -exec cp {} latest/RonCafeLauncher-macOS-latest.dmg \;
+
+      - name: Upload to Latest Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: |
+            latest/*
+          overwrite: true
+        continue-on-error: true

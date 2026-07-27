@@ -24,6 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
+	  <Folder Include="installer\linux\appimage\" />
+	  <Folder Include="installer\macos\" />
 	  <Folder Include="src\" />
 	  <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
@@ -40,5 +42,6 @@
 
   <ItemGroup>
     <Content Include=".github\workflows\cross-sync.yaml" />
+    <Content Include=".github\workflows\crossplatform.yaml" />
   </ItemGroup>
 </Project>

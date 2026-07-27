@@ -3,6 +3,7 @@
   <component name="AvaloniaProject">
     <option name="projectPerEditor">
       <map>
+        <entry key="App.axaml" value="RonCafeApp.csproj" />
         <entry key="MainWindow.axaml" value="RonCafeApp.csproj" />
         <entry key="SettingsView.axaml" value="RonCafeApp.csproj" />
         <entry key="Views/CurfewWarningWindow.axaml" value="RonCafeApp.csproj" />
