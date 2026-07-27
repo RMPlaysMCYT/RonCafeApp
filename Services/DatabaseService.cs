@@ -21,7 +21,7 @@ public class DatabaseService
         _dbPath = Path.Combine(appDataDir, "RonCafeLauncher.db");
     }
 
-    // ─── Database Initialization ──────────────────────────────────────────────
+    // ─── Database Initialization (Only creates tables if they don't exist) ──
     public void InitializeDatabase()
     {
         using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
@@ -70,26 +70,7 @@ public class DatabaseService
         connection.Close();
     }
 
-    public bool HasExistingData()
-    {
-        try
-        {
-            using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
-            connection.Open();
-
-            var command = connection.CreateCommand();
-            command.CommandText = "SELECT COUNT(*) FROM Apps";
-
-            var result = (long?)command.ExecuteScalar() ?? 0;
-            return result > 0;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    // ─── Config Methods (Read-Only) ──────────────────────────────────────────
+    // ─── READ-ONLY Config Methods ──────────────────────────────────────────
     public LauncherConfig LoadConfig()
     {
         using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
@@ -116,7 +97,7 @@ public class DatabaseService
         return new LauncherConfig { Apps = new List<AppItem>() };
     }
 
-    // ─── App Methods (Read-Only - No Add/Update/Delete) ──────────────────────
+    // ─── READ-ONLY App Methods ─────────────────────────────────────────────
     public List<AppItem> LoadApps()
     {
         var apps = new List<AppItem>();
@@ -294,8 +275,7 @@ public class DatabaseService
         return categories;
     }
 
-    // ─── Running Process Tracking ────────────────────────────────────────────
-    // ADD THESE MISSING METHODS
+    // ─── Running Process Tracking (Needed for Curfew) ──────────────────────
     public void LogProcessStart(int appId, int processId, string category)
     {
         using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
