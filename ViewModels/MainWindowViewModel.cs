@@ -22,8 +22,6 @@ public class MainWindowViewModel : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    public string LauncherLayout { get; set; } = "MainWindow";
-    
     // ─── Legacy JSON path (for migration) ────────────────────────────────────
     private readonly string _legacyConfigurationPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RonCafeApp", "RonCafeLauncherSettings.json");

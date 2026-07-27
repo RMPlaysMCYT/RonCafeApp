@@ -21,6 +21,7 @@ public class DatabaseService
         _dbPath = Path.Combine(appDataDir, "RonCafeLauncher.db");
     }
 
+    // ─── Database Initialization ──────────────────────────────────────────────
     public void InitializeDatabase()
     {
         using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
@@ -34,6 +35,7 @@ public class DatabaseService
                 SidebarColor TEXT NOT NULL DEFAULT '#181825',
                 AccentColor TEXT NOT NULL DEFAULT '#89B4FA',
                 UseCoverArtView INTEGER NOT NULL DEFAULT 0,
+                WallpaperPath TEXT,
                 LastModified DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -44,6 +46,7 @@ public class DatabaseService
                 ExecutionPath TEXT NOT NULL,
                 IconPath TEXT NOT NULL DEFAULT '/Assets/placeholder.png',
                 CoverArtPath TEXT NOT NULL DEFAULT '/Assets/placeholder.png',
+                LastModified DATETIME DEFAULT CURRENT_TIMESTAMP,
                 CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
@@ -64,7 +67,6 @@ public class DatabaseService
         ";
 
         command.ExecuteNonQuery();
-        AddWallpaperColumn();
         connection.Close();
     }
 
@@ -87,14 +89,13 @@ public class DatabaseService
         }
     }
 
-    // ─── Config Methods ──────────────────────────────────────────────────────
+    // ─── Config Methods (Read-Only) ──────────────────────────────────────────
     public LauncherConfig LoadConfig()
     {
         using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
         connection.Open();
 
         var command = connection.CreateCommand();
-        // Make sure WallpaperPath is included in the SELECT
         command.CommandText =
             "SELECT BackgroundColor, SidebarColor, AccentColor, UseCoverArtView, WallpaperPath FROM LauncherConfig WHERE Id = 1";
 
@@ -115,43 +116,7 @@ public class DatabaseService
         return new LauncherConfig { Apps = new List<AppItem>() };
     }
 
-    public void SaveConfig(LauncherConfig config)
-    {
-        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
-        connection.Open();
-
-        using var transaction = connection.BeginTransaction();
-        try
-        {
-            var command = connection.CreateCommand();
-            command.CommandText = @"
-            UPDATE LauncherConfig 
-            SET BackgroundColor = @bgColor, 
-                SidebarColor = @sidebarColor, 
-                AccentColor = @accentColor,
-                UseCoverArtView = @useCoverArt,
-                WallpaperPath = @wallpaperPath,
-                LastModified = CURRENT_TIMESTAMP
-            WHERE Id = 1";
-
-            command.Parameters.AddWithValue("@bgColor", config.BackgroundColor ?? "#1E1E2E");
-            command.Parameters.AddWithValue("@sidebarColor", config.SidebarColor ?? "#181825");
-            command.Parameters.AddWithValue("@accentColor", config.AccentColor ?? "#89B4FA");
-            command.Parameters.AddWithValue("@useCoverArt", config.UseCoverArtReview ? 1 : 0);
-            command.Parameters.AddWithValue("@wallpaperPath", config.WallpaperPath ?? string.Empty);
-
-            command.ExecuteNonQuery();
-            transaction.Commit();
-        }
-        catch (Exception ex)
-        {
-            transaction.Rollback();
-            Console.WriteLine($"Failed to save config: {ex.Message}");
-            throw;
-        }
-    }
-
-    // ─── App Methods ─────────────────────────────────────────────────────────
+    // ─── App Methods (Read-Only - No Add/Update/Delete) ──────────────────────
     public List<AppItem> LoadApps()
     {
         var apps = new List<AppItem>();
@@ -161,7 +126,7 @@ public class DatabaseService
 
         var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT Id, Name, Category, ExecutionPath, IconPath, CoverArtPath 
+            SELECT Id, Name, Category, ExecutionPath, IconPath, CoverArtPath, LastModified, CreatedAt, UpdatedAt
             FROM Apps 
             ORDER BY Category, Name";
 
@@ -175,96 +140,14 @@ public class DatabaseService
                 Category = reader.GetString(2),
                 getExecutionPATH = reader.GetString(3),
                 IconPlaceholder = reader.GetString(4),
-                CoverArtPlaceholder = reader.GetString(5)
+                CoverArtPlaceholder = reader.GetString(5),
+                LastModified = reader.IsDBNull(6) ? null : reader.GetDateTime(6),
+                CreatedAt = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
+                UpdatedAt = reader.IsDBNull(8) ? null : reader.GetDateTime(8)
             });
         }
 
         return apps;
-    }
-
-    public int AddApp(AppItem app)
-    {
-        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
-        connection.Open();
-
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-            INSERT INTO Apps (Name, Category, ExecutionPath, IconPath, CoverArtPath)
-            VALUES (@name, @category, @execPath, @iconPath, @coverPath);
-            SELECT last_insert_rowid();";
-
-        command.Parameters.AddWithValue("@name", app.Name);
-        command.Parameters.AddWithValue("@category", app.Category);
-        command.Parameters.AddWithValue("@execPath", app.getExecutionPATH);
-        command.Parameters.AddWithValue("@iconPath", app.IconPlaceholder);
-        command.Parameters.AddWithValue("@coverPath", app.CoverArtPlaceholder);
-
-        try
-        {
-            return (int)(long)command.ExecuteScalar()!;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error adding app: {ex.Message}");
-            throw;
-        }
-    }
-
-    public void UpdateApp(AppItem app)
-    {
-        if (app.Id == 0)
-            throw new InvalidOperationException("Cannot update app without Id");
-
-        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
-        connection.Open();
-
-        var command = connection.CreateCommand();
-        command.CommandText = @"
-            UPDATE Apps 
-            SET Name = @name, 
-                Category = @category, 
-                ExecutionPath = @execPath,
-                IconPath = @iconPath,
-                CoverArtPath = @coverPath,
-                UpdatedAt = CURRENT_TIMESTAMP
-            WHERE Id = @id";
-
-        command.Parameters.AddWithValue("@id", app.Id);
-        command.Parameters.AddWithValue("@name", app.Name);
-        command.Parameters.AddWithValue("@category", app.Category);
-        command.Parameters.AddWithValue("@execPath", app.getExecutionPATH);
-        command.Parameters.AddWithValue("@iconPath", app.IconPlaceholder);
-        command.Parameters.AddWithValue("@coverPath", app.CoverArtPlaceholder);
-
-        try
-        {
-            command.ExecuteNonQuery();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error updating app: {ex.Message}");
-            throw;
-        }
-    }
-
-    public void DeleteApp(int appId)
-    {
-        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
-        connection.Open();
-
-        var command = connection.CreateCommand();
-        command.CommandText = "DELETE FROM Apps WHERE Id = @id";
-        command.Parameters.AddWithValue("@id", appId);
-
-        try
-        {
-            command.ExecuteNonQuery();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error deleting app: {ex.Message}");
-            throw;
-        }
     }
 
     public AppItem? GetAppById(int appId)
@@ -274,7 +157,7 @@ public class DatabaseService
 
         var command = connection.CreateCommand();
         command.CommandText = @"
-            SELECT Id, Name, Category, ExecutionPath, IconPath, CoverArtPath 
+            SELECT Id, Name, Category, ExecutionPath, IconPath, CoverArtPath, LastModified, CreatedAt, UpdatedAt
             FROM Apps 
             WHERE Id = @id";
 
@@ -290,14 +173,129 @@ public class DatabaseService
                 Category = reader.GetString(2),
                 getExecutionPATH = reader.GetString(3),
                 IconPlaceholder = reader.GetString(4),
-                CoverArtPlaceholder = reader.GetString(5)
+                CoverArtPlaceholder = reader.GetString(5),
+                LastModified = reader.IsDBNull(6) ? null : reader.GetDateTime(6),
+                CreatedAt = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
+                UpdatedAt = reader.IsDBNull(8) ? null : reader.GetDateTime(8)
             };
         }
 
         return null;
     }
 
+    public AppItem? GetAppByName(string name)
+    {
+        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
+        connection.Open();
+
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT Id, Name, Category, ExecutionPath, IconPath, CoverArtPath, LastModified, CreatedAt, UpdatedAt
+            FROM Apps 
+            WHERE Name = @name";
+
+        command.Parameters.AddWithValue("@name", name);
+
+        using var reader = command.ExecuteReader();
+        if (reader.Read())
+        {
+            return new AppItem
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Category = reader.GetString(2),
+                getExecutionPATH = reader.GetString(3),
+                IconPlaceholder = reader.GetString(4),
+                CoverArtPlaceholder = reader.GetString(5),
+                LastModified = reader.IsDBNull(6) ? null : reader.GetDateTime(6),
+                CreatedAt = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
+                UpdatedAt = reader.IsDBNull(8) ? null : reader.GetDateTime(8)
+            };
+        }
+
+        return null;
+    }
+
+    public List<AppItem> GetAppsByCategory(string category)
+    {
+        var apps = new List<AppItem>();
+
+        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
+        connection.Open();
+
+        var command = connection.CreateCommand();
+        command.CommandText = @"
+            SELECT Id, Name, Category, ExecutionPath, IconPath, CoverArtPath, LastModified, CreatedAt, UpdatedAt
+            FROM Apps 
+            WHERE Category = @category
+            ORDER BY Name";
+
+        command.Parameters.AddWithValue("@category", category);
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            apps.Add(new AppItem
+            {
+                Id = reader.GetInt32(0),
+                Name = reader.GetString(1),
+                Category = reader.GetString(2),
+                getExecutionPATH = reader.GetString(3),
+                IconPlaceholder = reader.GetString(4),
+                CoverArtPlaceholder = reader.GetString(5),
+                LastModified = reader.IsDBNull(6) ? null : reader.GetDateTime(6),
+                CreatedAt = reader.IsDBNull(7) ? null : reader.GetDateTime(7),
+                UpdatedAt = reader.IsDBNull(8) ? null : reader.GetDateTime(8)
+            });
+        }
+
+        return apps;
+    }
+
+    public int GetAppCount()
+    {
+        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
+        connection.Open();
+
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM Apps";
+
+        return (int)(long)command.ExecuteScalar()!;
+    }
+
+    public int GetAppCountByCategory(string category)
+    {
+        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
+        connection.Open();
+
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT COUNT(*) FROM Apps WHERE Category = @category";
+        command.Parameters.AddWithValue("@category", category);
+
+        return (int)(long)command.ExecuteScalar()!;
+    }
+
+    public List<string> GetAllCategories()
+    {
+        var categories = new List<string>();
+
+        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
+        connection.Open();
+
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT DISTINCT Category FROM Apps ORDER BY Category";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            categories.Add(reader.GetString(0));
+        }
+
+        return categories;
+    }
+
     // ─── Running Process Tracking ────────────────────────────────────────────
+    // ADD THESE MISSING METHODS
     public void LogProcessStart(int appId, int processId, string category)
     {
         using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
@@ -380,44 +378,73 @@ public class DatabaseService
         return (int)(long)command.ExecuteScalar()!;
     }
 
-    private void AddWallpaperColumn()
+    public List<(int ProcessId, int AppId, string Category, DateTime StartedAt)> GetAllRunningProcesses()
+    {
+        var processes = new List<(int, int, string, DateTime)>();
+
+        using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
+        connection.Open();
+
+        var command = connection.CreateCommand();
+        command.CommandText = "SELECT ProcessId, AppId, Category, StartedAt FROM RunningProcesses";
+
+        using var reader = command.ExecuteReader();
+        while (reader.Read())
+        {
+            processes.Add((
+                reader.GetInt32(0),
+                reader.GetInt32(1),
+                reader.GetString(2),
+                reader.GetDateTime(3)
+            ));
+        }
+
+        return processes;
+    }
+
+    // ─── Health Check ─────────────────────────────────────────────────────────
+    public bool IsDatabaseAccessible()
     {
         try
         {
             using var connection = new SqliteConnection(string.Format(CONNECTION_STRING, _dbPath));
             connection.Open();
-
-            // Check if column exists first
-            var checkCommand = connection.CreateCommand();
-            checkCommand.CommandText = "PRAGMA table_info(LauncherConfig)";
-            using var reader = checkCommand.ExecuteReader();
-
-            bool hasWallpaperColumn = false;
-            while (reader.Read())
-            {
-                var columnName = reader.GetString(1);
-                if (columnName == "WallpaperPath")
-                {
-                    hasWallpaperColumn = true;
-                    break;
-                }
-            }
-
-            if (!hasWallpaperColumn)
-            {
-                var alterCommand = connection.CreateCommand();
-                alterCommand.CommandText = "ALTER TABLE LauncherConfig ADD COLUMN WallpaperPath TEXT";
-                alterCommand.ExecuteNonQuery();
-                Console.WriteLine("Added WallpaperPath column to LauncherConfig table");
-            }
-            else
-            {
-                Console.WriteLine("WallpaperPath column already exists");
-            }
+            var command = connection.CreateCommand();
+            command.CommandText = "SELECT 1";
+            command.ExecuteScalar();
+            return true;
         }
-        catch (Exception ex)
+        catch
         {
-            Console.WriteLine($"Error adding wallpaper column: {ex.Message}");
+            return false;
+        }
+    }
+
+    public string GetDatabasePath() => _dbPath;
+
+    public long GetDatabaseSize()
+    {
+        try
+        {
+            var fileInfo = new FileInfo(_dbPath);
+            return fileInfo.Exists ? fileInfo.Length : 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    public DateTime? GetDatabaseLastModified()
+    {
+        try
+        {
+            var fileInfo = new FileInfo(_dbPath);
+            return fileInfo.Exists ? fileInfo.LastWriteTime : null;
+        }
+        catch
+        {
+            return null;
         }
     }
 }

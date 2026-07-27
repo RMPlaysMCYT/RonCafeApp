@@ -58,13 +58,13 @@
                              Background="Transparent"
                              FontSize="20"
                              Foreground="White" />
-                    <!-- <Button Grid.Row="3" -->
-                    <!--         Content="⚙ Settings" -->
-                    <!--         Command="{Binding PromptSettingsPassword}" -->
-                    <!--         Foreground="AntiqueWhite" -->
-                    <!--         HorizontalAlignment="Stretch" -->
-                    <!--         HorizontalContentAlignment="Center" -->
-                    <!--         Margin="0,10,0,0" /> -->
+                    <Button Grid.Row="3"
+                            Content="⚙ Reload"
+                            Command="{Binding LoadConfig}"
+                            Foreground="AntiqueWhite"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Margin="0,10,0,0" />
                 </Grid>
             </Border>
 
@@ -166,7 +166,7 @@
                                 IsVisible="{Binding CurrentPage,
                                 Converter={x:Static ObjectConverters.IsNotNull}}" />
                 <Grid>
-                    <TextBlock Text="Version 1.2.0"
+                    <TextBlock Text="Version 1.3.0"
                                HorizontalAlignment="Right"
                                VerticalAlignment="Bottom"
                                Margin="0,0,10,10"
