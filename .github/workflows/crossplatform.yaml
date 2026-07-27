@@ -212,7 +212,7 @@ jobs:
   # ============ MACOS SIGNING (Optional) ============
   sign-macos:
     needs: build
-    if: startsWith(github.ref, 'refs/tags/') && runner.os == 'macOS' && secrets.MACOS_CERTIFICATE != ''
+    if: startsWith(github.ref, 'refs/tags/') && secrets.MACOS_CERTIFICATE != ''
     runs-on: macos-latest
     
     steps:
