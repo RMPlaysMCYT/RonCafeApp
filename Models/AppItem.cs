@@ -8,7 +8,6 @@ public class AppItem : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    // Database ID
     public int Id { get; set; }
 
     private string _name = string.Empty;
@@ -40,7 +39,7 @@ public class AppItem : INotifyPropertyChanged
     }
 
     private string _executionPath = string.Empty;
-    public string getExecutionPATH // Keep for backward compatibility
+    public string getExecutionPATH 
     {
         get => _executionPath;
         set
@@ -81,7 +80,6 @@ public class AppItem : INotifyPropertyChanged
         }
     }
     
-    // Add these missing properties
     public DateTime? LastModified { get; set; }
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
