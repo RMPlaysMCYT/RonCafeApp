@@ -1,4 +1,5 @@
 using System;
+using Avalonia; // ADD THIS LINE
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using RonCafeApp.Views;

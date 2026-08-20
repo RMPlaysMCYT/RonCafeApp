@@ -1,15 +1,14 @@
-﻿using Avalonia;
+﻿// Program.cs
+using Avalonia;
 using System;
 using Grpc.Core;
 using RonCafeApp.Services;
-using RonCafeApp.ViewModels;
-using RonCafeApp.Grpc; // Add this for the generated gRPC code
+using RonCafeApp.Grpc;
 
 namespace RonCafeApp;
 
 class Program
 {
-    // Static variable to hold the gRPC server instance
     private static Server? _grpcServer;
 
     [STAThread]
@@ -52,7 +51,7 @@ class Program
         }
     }
 
-    // This can be called from App.xaml.cs OnExit
+    // ADD THIS METHOD - It must be static
     public static void ShutdownGrpcServer()
     {
         try

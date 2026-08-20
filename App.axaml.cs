@@ -22,10 +22,9 @@ public class App : Application
         base.OnFrameworkInitializationCompleted();
     }
 
-    // Handle application exit to clean up gRPC
-    public void OnExit(EventArgs e)
+    // Handle application exit to clean up gRPCW
+    protected void OnExit(object? sender, ControlledApplicationLifetimeExitEventArgs e)
     {
         Program.ShutdownGrpcServer();
-        base.OnExit(e);
     }
 }
