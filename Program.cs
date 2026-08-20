@@ -3,6 +3,7 @@ using System;
 using Grpc.Core;
 using RonCafeApp.Services;
 using RonCafeApp.ViewModels;
+using RonCafeApp.Grpc; // Add this for the generated gRPC code
 
 namespace RonCafeApp;
 
@@ -29,25 +30,40 @@ class Program
             .WithInterFont()
             .LogToTrace();
 
-    private void StartGrpcServer()
+    private static void StartGrpcServer()
     {
-        // Ensure WindowSelectionService is initialized
-        var windowService = new WindowSelectionService();
-        var adminService = new AdminServiceImpl(windowService);
-
-        _grpcServer = new Server
+        try
         {
-            Services = { AdminService.BindService(adminService) },
-            Ports = { new ServerPort("localhost", 50051, ServerCredentials.Insecure) } // Use Insecure for local dev
-        };
-        _grpcServer.Start();
+            var windowService = new WindowSelectionService();
+            var adminService = new AdminServiceImpl(windowService);
 
-        Console.WriteLine("gRPC Admin server listening on port 50051");
+            _grpcServer = new Server
+            {
+                Services = { AdminService.BindService(adminService) },
+                Ports = { new ServerPort("localhost", 50051, ServerCredentials.Insecure) }
+            };
+            _grpcServer.Start();
+
+            Console.WriteLine("✅ gRPC Admin server listening on port 50051");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Failed to start gRPC server: {ex.Message}");
+        }
     }
 
-    protected void OnExit(EventArgs e)
+    // This can be called from App.xaml.cs OnExit
+    public static void ShutdownGrpcServer()
     {
-        _grpcServer?.ShutdownAsync().Wait();
-        base.OnExit(e);
+        try
+        {
+            _grpcServer?.ShutdownAsync().Wait(TimeSpan.FromSeconds(5));
+            _grpcServer = null;
+            Console.WriteLine("✅ gRPC server shut down");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Error shutting down gRPC server: {ex.Message}");
+        }
     }
 }
