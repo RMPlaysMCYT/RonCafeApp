@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option csharp_namespace = "RonCafeApp.Grpc";
+
+package admin;
+
+service AdminService {
+  rpc SelectWindow (WindowRequest) returns (CommandResponse);
+}
+
+message WindowRequest {
+  string window_type = 1; 
+}
+
+message CommandResponse {
+  bool success = 1;
+  string message = 2;
+}
