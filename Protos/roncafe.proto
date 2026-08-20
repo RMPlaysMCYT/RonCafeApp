@@ -6,13 +6,24 @@ package admin;
 
 service AdminService {
   rpc SelectWindow (WindowRequest) returns (CommandResponse);
+  rpc ReloadApps (EmptyRequest) returns (CommandResponse);
+  rpc GetStatus (EmptyRequest) returns (StatusResponse);
 }
 
 message WindowRequest {
-  string window_type = 1; 
+  string window_type = 1;
 }
+
+message EmptyRequest {}
 
 message CommandResponse {
   bool success = 1;
   string message = 2;
+}
+
+message StatusResponse {
+  string current_window = 1;
+  string selected_category = 2;
+  int32 app_count = 3;
+  bool curfew_active = 4;
 }
