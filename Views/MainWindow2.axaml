@@ -21,11 +21,10 @@
     <Grid>
         <!-- Background: Show wallpaper OR solid color -->
         <Grid>
-            <!-- Solid color background (visible when NO wallpaper) -->
+            
             <Rectangle Fill="{Binding LauncherBackground}"
                        IsVisible="{Binding WallpaperBrush, Converter={x:Static ObjectConverters.IsNull}}" />
 
-            <!-- Wallpaper (visible when wallpaper exists) -->
             <Image Source="{Binding WallpaperPath, Converter={StaticResource BitmapConv}}"
                    Stretch="UniformToFill"
                    Opacity="0.85"
